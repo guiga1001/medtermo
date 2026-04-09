@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedTermo — raciocínio clínico diário</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #ffffff;
+      --header: #3b5f9a;
+      --header-2: #3b5f9a;
+      --text: #18324a;
+      --muted: #6b7d90;
+      --line: #d9e5f0;
+      --hint: #eaf4fb;
+      --hint-border: #cfe1ef;
+      --success: #e7f8ed;
+      --success-border: #9ccfad;
+      --error: #fdecef;
+      --error-border: #e6a6b2;
+      --warning: #fff4e7;
+      --warning-border: #e8c48a;
+      --accent: #4d97d2;
+      --accent-dark: #3479b1;
+      --shadow: 0 14px 34px rgba(73, 102, 145, 0.12);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .app {
+      width: 100%;
+      max-width: none;
+      position: relative;
+    }
+
+    .topbar {
+      background: var(--header);
+      color: #fff;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+    }
+
+    .menu-btn, .icon-btn {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .menu-btn {
+      position: absolute;
+      left: 8px;
+      top: 7px;
+      width: 40px;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 22px;
+    }
+
+    .brand {
+      font-weight: 900;
+      letter-spacing: -0.8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .brand small {
+      font-weight: 700;
+      opacity: 0.92;
+      font-size: 14px;
+    }
+
+    .panel {
+      background: var(--card);
+      padding: 22px 24px 22px;
+      min-height: calc(100vh - 140px);
+      display: flex;
+      justify-content: center;
+    }
+
+    .panel-inner {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .question-title {
+      text-align: center;
+      font-size: 34px;
+      font-weight: 800;
+      margin: 10px 0 14px;
+      line-height: 1.1;
+    }
+
+    .archive-meta {
+      text-align: center;
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .case-card {
+      background: #f9fcfe;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      text-align: center;
+      font-weight: 600;
+      min-height: 84px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hints {
+      display: grid;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+
+    .hint {
+      min-height: 56px;
+      border-radius: 12px;
+      background: #f9fcfe;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px 12px;
+      font-weight: 600;
+      color: #284558;
+      transition: opacity .22s ease, background .22s ease;
+      transform-origin: center center;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hint.hidden {
+      color: transparent;
+      user-select: none;
+      background: #f9fcfe;
+      border: 1px solid var(--line);
+    }
+
+    .hint.hidden::after {
+      content: none;
+    }
+
+    .hint.revealed {
+      animation: hintFlipUp .58s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .hint.final-reveal {
+      animation: hintFlipUp .64s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .hint.shake-out {
+      animation: hintShake .44s ease;
+    }
+
+    .app.result-win .case-card,
+    .app.result-win .question-title {
+      animation: celebratePop .7s cubic-bezier(.18,.89,.32,1.28);
+    }
+
+    .app.result-win .panel {
+      animation: softGlowWin 1.2s ease;
+    }
+
+    .app.result-lose .panel {
+      animation: softGlowLose 1s ease;
+    }
+
+    .app.result-lose .case-card,
+    .app.result-lose .question-title {
+      animation: defeatDip .72s ease;
+    }
+
+    .app.result-lose .hint {
+      animation: hintFadeWave .7s ease;
+    }
+
+    .notice.win-burst {
+      animation: noticeDrop .55s cubic-bezier(.2,.8,.2,1), softGlowWin 1.1s ease;
+    }
+
+    .notice.lose-burst {
+      animation: noticeDrop .5s cubic-bezier(.2,.8,.2,1), softGlowLose 1s ease;
+    }
+
+    .guess-item.correct.burst {
+      animation: correctRow .62s cubic-bezier(.18,.89,.32,1.28);
+    }
+
+    .guess-item.last-miss {
+      animation: finalMiss .58s ease;
+    }
+
+    .confetti-layer,
+    .spark-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 50;
+    }
+
+    .confetti-piece,
+    .spark-piece {
+      position: absolute;
+      top: -24px;
+      border-radius: 999px;
+      opacity: 0.92;
+    }
+
+    .confetti-piece {
+      width: 10px;
+      height: 18px;
+      animation: confettiFall linear forwards;
+    }
+
+    .spark-piece {
+      width: 12px;
+      height: 12px;
+      animation: sparkBurst ease-out forwards;
+    }
+
+    @keyframes hintFlipUp {
+      0% {
+        transform: perspective(1000px) rotateX(180deg);
+      }
+      60% {
+        transform: perspective(1000px) rotateX(-8deg);
+      }
+      100% {
+        transform: perspective(1000px) rotateX(0deg);
+      }
+    }
+
+    @keyframes hintShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+
+    @keyframes celebratePop {
+      0% { transform: scale(.96); }
+      45% { transform: scale(1.025); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes defeatDip {
+      0% { transform: translateY(0); }
+      35% { transform: translateY(5px); }
+      100% { transform: translateY(0); }
+    }
+
+    @keyframes softGlowWin {
+      0% { box-shadow: var(--shadow); }
+      35% { box-shadow: 0 0 0 8px rgba(156, 207, 173, 0.14), 0 20px 42px rgba(73, 102, 145, 0.18); }
+      100% { box-shadow: var(--shadow); }
+    }
+
+    @keyframes softGlowLose {
+      0% { box-shadow: var(--shadow); }
+      35% { box-shadow: 0 0 0 8px rgba(232, 196, 138, 0.16), 0 20px 42px rgba(73, 102, 145, 0.16); }
+      100% { box-shadow: var(--shadow); }
+    }
+
+    @keyframes noticeDrop {
+      0% { opacity: 0; transform: translateY(-10px) scale(.97); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes correctRow {
+      0% { transform: scale(.98); }
+      50% { transform: scale(1.015); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes finalMiss {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+    @keyframes hintFadeWave {
+      0% { opacity: 1; transform: scale(1); }
+      35% { opacity: .86; transform: scale(.992); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translate3d(0,0,0) rotate(0deg); opacity: 0; }
+      8% { opacity: 1; }
+      100% { transform: translate3d(var(--drift, 0px), 108vh, 0) rotate(var(--rot, 180deg)); opacity: 0; }
+    }
+
+    @keyframes sparkBurst {
+      0% { transform: translate3d(0,0,0) scale(.5); opacity: 0; }
+      20% { opacity: .95; }
+      100% { transform: translate3d(var(--x, 0px), var(--y, 0px), 0) scale(1.2); opacity: 0; }
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+      position: relative;
+      margin-top: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #d4dbe1;
+      border-radius: 10px;
+      padding: 0 12px;
+      font-size: 15px;
+      outline: none;
+      background: #fff;
+    }
+
+    input[type="text"]:focus {
+      border-color: #9fc4db;
+      box-shadow: 0 0 0 3px rgba(46, 142, 203, 0.12);
+    }
+
+    .btn {
+      height: 44px;
+      border: 0;
+      border-radius: 10px;
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .05s ease, background .2s ease, opacity .2s ease;
+    }
+
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: var(--header); color: #fff; }
+    .btn.primary:hover { background: #3f5f99; }
+    .btn.secondary { background: #edf4fb; color: #54708a; }
+    .btn.secondary:hover { background: #dfebf6; }
+    .btn.blue { background: var(--accent); color: #fff; }
+    .btn.blue:hover { background: var(--accent-dark); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .autocomplete {
+      position: absolute;
+      left: 0;
+      right: 132px;
+      top: 44px;
+      background: #fff;
+      border: 1px solid #d8e2e8;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(30, 41, 59, 0.12);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+
+    .autocomplete.show { display: block; }
+    .autocomplete-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #eff4f7;
+      font-size: 15px;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover, .autocomplete-item.active { background: #edf6fc; }
+
+    .notice {
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-weight: 700;
+      text-align: center;
+      border: 1px solid transparent;
+    }
+
+    .notice.success { background: var(--success); border-color: var(--success-border); color: #25673a; }
+    .notice.error { background: var(--error); border-color: var(--error-border); color: #9b2b2b; }
+    .notice.warning { background: var(--warning); border-color: var(--warning-border); color: #8a5a0a; }
+
+    .guess-list {
+      margin-top: 10px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e7eef2;
+      background: #fbfdff;
+    }
+
+    .guess-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #edf2f5;
+      font-size: 15px;
+    }
+
+    .guess-item:last-child { border-bottom: none; }
+    .guess-item.wrong { background: #fff7f7; color: #8a2d2d; }
+    .guess-item.correct { background: #f2fcf3; color: #25673a; font-weight: 700; }
+    .guess-item.skip { background: #f8fafb; color: #66717b; }
+
+    .disclosure {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .disclosure-banner {
+      font-weight: 800;
+      color: #2c5576;
+      margin-right: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .resolved-row {
+      display: none;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .resolved-answer {
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1px solid #cfe1ef;
+      background: #edf4fb;
+      color: #2d5778;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pill-answer {
+      background: #edf4fb;
+      color: #59748d;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .legal {
+      text-align: center;
+      color: #6c7c87;
+      font-size: 12px;
+      line-height: 1.45;
+      padding: 14px 8px 10px;
+      font-style: italic;
+    }
+
+    .footer-bar {
+      background: var(--header);
+      color: #fff;
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      width: 100%;
+    }
+
+    .footer-bar a { color: #fff; text-decoration: none; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 20;
+    }
+
+    .drawer-backdrop.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: -320px;
+      width: 280px;
+      height: 100vh;
+      background: linear-gradient(180deg, var(--header), #5f86c1);
+      color: #fff;
+      z-index: 21;
+      transition: left .22s ease;
+      box-shadow: 12px 0 40px rgba(0,0,0,0.25);
+      padding-top: 14px;
+    }
+
+    .drawer.show { left: 0; }
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+      font-weight: 800;
+    }
+
+    .drawer-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      text-align: left;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      cursor: pointer;
+    }
+
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.08); }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .archive-card {
+      border: 2px solid #b6cae2;
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px 10px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 800;
+      color: #44617f;
+      box-shadow: 0 4px 10px rgba(84, 117, 158, 0.10);
+    }
+
+    .archive-card small {
+      display: block;
+      margin-top: 4px;
+      font-weight: 600;
+      color: #7691ab;
+    }
+
+    .archive-card:hover { transform: translateY(-1px); }
+
+    .screen-title {
+      font-size: 26px;
+      font-weight: 800;
+      text-align: center;
+      margin: 8px 0 10px;
+    }
+
+    .screen-subtitle {
+      text-align: center;
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .stat-card {
+      background: #f4f8fc;
+      border: 1px solid #dde7f1;
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-card span {
+      font-size: 11px;
+      color: #616d7a;
+      font-weight: 700;
+    }
+
+    .dist {
+      margin-top: 12px;
+      background: #f7fbfe;
+      border: 1px solid #dee9f3;
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .dist h4 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .dist-row {
+      display: grid;
+      grid-template-columns: 20px 1fr 26px;
+      gap: 8px;
+      align-items: center;
+      margin: 7px 0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .bar-wrap {
+      background: #e7eff6;
+      border-radius: 999px;
+      height: 18px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      min-width: 0;
+      background: linear-gradient(90deg, #6ea9da, #4f6fae);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 6px;
+      font-size: 11px;
+    }
+
+    .share-block {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .share-preview {
+      width: 100%;
+      background: #f2f8fd;
+      border: 1px dashed #b7d1e7;
+      border-radius: 14px;
+      padding: 12px;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: #49657e;
+    }
+
+    .center-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .summary-box {
+      background: #f7fbfe;
+      border: 1px solid #d8e5f0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-top: 14px;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .summary-box h4 { margin: 0 0 10px; font-size: 16px; }
+
+    .about-box {
+      background: #f7fbfe;
+      border: 1px solid #d9e5ef;
+      border-radius: 16px;
+      padding: 16px;
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .small-muted {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .dev-toolbar {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 80;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: min(92vw, 460px);
+    }
+
+    .dev-chip {
+      border: 1px solid #c9d9e8;
+      background: rgba(255,255,255,0.94);
+      color: #3f5d78;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(73, 102, 145, 0.12);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+
+    .dev-chip.active {
+      background: #edf6fc;
+      border-color: #9fc4db;
+      color: #295678;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.42);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 120;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+      animation: modalFade .2s ease;
+    }
+
+    .result-modal {
+      width: min(100%, 520px);
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 26px 60px rgba(40, 64, 92, 0.24);
+      border: 1px solid #d9e5f0;
+      overflow: hidden;
+      animation: modalPop .28s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .result-modal-head {
+      padding: 18px 18px 12px;
+      background: linear-gradient(135deg, #f5f9fd, #edf5fb);
+      border-bottom: 1px solid #deebf5;
+      text-align: center;
+    }
+
+    .result-modal-head h3 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.5px;
+    }
+
+    .result-modal-head p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .result-modal-body {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .modal-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .modal-share-preview {
+      width: 100%;
+      background: #f2f8fd;
+      border: 1px dashed #b7d1e7;
+      border-radius: 14px;
+      padding: 12px;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: #49657e;
+    }
+
+    .result-modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .result-modal-close {
+      background: #edf4fb;
+      color: #54708a;
+    }
+
+    @keyframes modalFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: translateY(14px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 760px) {
+      .app { max-width: 520px; }
+      .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .panel { padding: 18px 16px 20px; min-height: 640px; }
+      .question-title, .screen-title { font-size: 28px; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .question-title, .screen-title { font-size: 24px; }
+      .input-row { grid-template-columns: 1fr auto; }
+      .autocomplete { right: 56px; }
+      .skip-mobile-wrap { grid-column: 1 / -1; }
+      .panel { min-height: 620px; }
+      .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-head">
+      <button class="drawer-close" id="closeDrawer">×</button>
+      <div>medtermo</div>
+    </div>
+    <button class="nav-item active" data-nav="game">📋 Jogo do dia</button>
+    <button class="nav-item" data-nav="archives">🗂️ Jogos anteriores</button>
+    <button class="nav-item" data-nav="stats">📊 Estatísticas</button>
+    <button class="nav-item" data-nav="about">ℹ️ Sobre</button>
+  </aside>
+
+  <div class="shell">
+    <div class="app">
+      <div class="topbar">
+        <button class="menu-btn" id="openDrawer">☰</button>
+        <div class="brand"><span id="brandTitle">medtermo</span></div>
+      </div>
+
+      <div class="panel"><div class="panel-inner">
+        <section class="screen active" id="screen-game">
+          <div class="archive-meta" id="gameMeta"></div>
+          <div class="question-title">Qual é o diagnóstico?</div>
+          <div class="case-card" id="caseStem"></div>
+          <div class="hints" id="hintsContainer"></div>
+
+          <div id="gameNotice"></div>
+
+          <div class="input-row" id="inputRow">
+            <input type="text" id="guessInput" placeholder="Digite um diagnóstico..." autocomplete="off" />
+            <button class="btn primary" id="submitGuess">Enviar</button>
+            <button class="btn secondary skip-mobile-wrap" id="skipHint">Pular</button>
+            <div class="autocomplete" id="autocomplete"></div>
+          </div>
+
+          <div class="resolved-row" id="resolvedRow">
+            <div class="resolved-answer" id="resolvedAnswer"></div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn blue" id="shareResultBtn">Compartilhar</button>
+              <button class="btn blue" id="learnMoreBtn">Quero aprender mais</button>
+            </div>
+          </div>
+
+          <div class="guess-list" id="guessList"></div>
+          <div class="disclosure" id="disclosureArea" style="display:none;"></div>
+          <div class="summary-box" id="summaryBox" style="display:none;"></div>
+        </section>
+
+        <section class="screen" id="screen-archives">
+          <div class="screen-title">Jogos anteriores</div>
+          <div class="screen-subtitle">Demonstração inicial com os quizzes de 07/04, 08/04 e 09/04. Em telas maiores, o layout fica mais amplo, mantendo o cartão central no estilo do Doctordle.</div>
+          <div class="archive-grid" id="archiveGrid"></div>
+        </section>
+
+        <section class="screen" id="screen-stats">
+          <div class="screen-title">Estatísticas</div>
+          <div class="screen-subtitle">Armazenadas localmente no navegador para o protótipo.</div>
+          <div class="stats-grid" id="statsGrid"></div>
+          <div class="dist">
+            <h4>Distribuição de acertos</h4>
+            <div id="distribution"></div>
+          </div>
+          <div class="share-block">
+            <div class="notice warning" id="percentileBox">Continue jogando para gerar mais histórico.</div>
+            <button class="btn blue" id="copyLatestShare">Compartilhar resultado</button>
+            <div class="share-preview" id="latestSharePreview">Nenhum resultado compartilhável ainda.</div>
+          </div>
+        </section>
+
+        <section class="screen" id="screen-about">
+          <div class="screen-title">Sobre o MedTermo</div>
+          <div class="about-box">
+            <p><strong>MedTermo</strong> é um protótipo inspirado no formato de raciocínio clínico progressivo do Doctordle, mas adaptado para temas relevantes em provas de residência médica brasileiras e na prática da medicina no Brasil.</p>
+            <p>O usuário recebe um caso breve, formula hipóteses diagnósticas e usa dicas progressivas para afunilar o raciocínio. O objetivo é treino cognitivo, revisão ativa e reconhecimento de padrões.</p>
+            <p><strong>Aviso:</strong> este site tem finalidade educacional e de entretenimento. Não substitui avaliação médica, conduta clínica ou tomada de decisão assistencial real.</p>
+            <p><strong>Próxima etapa prevista:</strong> criar um abastecimento externo de quizzes diários, para que os casos futuros possam ser atualizados sem editar o HTML manualmente.</p>
+          </div>
+          <div class="small-muted">medtermo.com • protótipo inicial em arquivo HTML único</div>
+        </section>
+      </div>
+
+      </div></div>
+
+      <div class="legal">O MedTermo é destinado a estudo e entretenimento. Não constitui aconselhamento médico e não deve ser usado para decisões clínicas reais.</div>
+      <div class="footer-bar">© 2026 MedTermo • contato@medtermo.com</div>
+    </div>
+
+  <div class="dev-toolbar" id="devToolbar"></div>
+  <div class="modal-backdrop" id="resultModalBackdrop">
+    <div class="result-modal" role="dialog" aria-modal="true" aria-labelledby="resultModalTitle">
+      <div class="result-modal-head">
+        <h3 id="resultModalTitle">Resultado do dia</h3>
+        <p id="resultModalSubtitle">Seu desempenho e o compartilhamento do quiz.</p>
+      </div>
+      <div class="result-modal-body">
+        <div class="modal-stats-grid" id="modalStatsGrid"></div>
+        <div class="dist">
+          <h4>Distribuição de acertos</h4>
+          <div id="modalDistribution"></div>
+        </div>
+        <div class="notice warning" id="modalPercentileBox">Continue jogando para gerar mais histórico.</div>
+        <div class="modal-share-preview" id="modalSharePreview"></div>
+        <div class="result-modal-actions">
+          <button class="btn blue" id="modalShareButton">Compartilhar resultado</button>
+          <button class="btn result-modal-close" id="closeResultModal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEV_MODE_QUERY = location.search.includes('dev=1');
+    const RESET_ON_LOAD = location.search.includes('reset=1');
+    const LOCAL_FILE_MODE = location.protocol === 'file:';
+    const DEV_MODE_STORAGE_KEY = 'medtermo-dev-mode';
+    let DEV_MODE = DEV_MODE_QUERY || localStorage.getItem(DEV_MODE_STORAGE_KEY) === '1';
+
+   // Transformamos em let para poder populá-las dinamicamente
+let DISEASES = [];
+let QUIZZES = {};
+
+// Links diretos de exportação TSV da sua planilha
+const LINK_TSV_DOENCAS = "https://docs.google.com/spreadsheets/d/1QIDAaiVyRltk6xkeBdMvLHf3xaODuBs9DWCpm1kjmZs/export?format=tsv&sheet=lista_geral";
+const LINK_TSV_QUIZZES = "https://docs.google.com/spreadsheets/d/1QIDAaiVyRltk6xkeBdMvLHf3xaODuBs9DWCpm1kjmZs/export?format=tsv&sheet=Página1";
+
+async function carregarDadosDaPlanilha() {
+  try {
+    // 1. Carregar Lista de Doenças (Aba: lista_geral)
+    const resDoencas = await fetch(LINK_TSV_DOENCAS);
+    const textDoencas = await resDoencas.text();
+    DISEASES = textDoencas.split('\n')
+      .slice(1) // Pula o cabeçalho "doenca"
+      .map(d => d.trim())
+      .filter(d => d !== "")
+      .sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+
+    // 2. Carregar Quizzes Diários (Aba: Página1)
+    const resQuizzes = await fetch(LINK_TSV_QUIZZES);
+    const textQuizzes = await resQuizzes.text();
+    const linhasQuizzes = textQuizzes.split('\n');
+
+    linhasQuizzes.slice(1).forEach((linha, index) => {
+      const colunas = linha.split('\t').map(c => c.trim());
+      
+      // Pula linhas vazias ou sem data
+      if (colunas.length < 2 || !colunas[0]) return;
+
+      const dataStr = colunas[0]; // Ex: 08/04/2026
+      const partesData = dataStr.split('/');
+      
+      if (partesData.length === 3) {
+        const [dia, mes, ano] = partesData;
+        const dateKey = `${ano}-${mes}-${dia}`; // Converte para YYYY-MM-DD para o jogo entender
+
+        QUIZZES[dateKey] = {
+          id: index + 1,
+          dateLabel: dataStr,
+          stem: "Acompanhe o caso clínico e as dicas a seguir:", 
+          answer: colunas[1] || "",
+          // As dicas estão nas colunas 2 a 7
+          hints: [colunas[2], colunas[3], colunas[4], colunas[5], colunas[6], colunas[7]].filter(Boolean),
+          summary: "" 
+        };
+      }
+    });
+
+    // 3. Inicializa o jogo após carregar tudo
+    iniciarJogo();
+
+  } catch (error) {
+    console.error("Erro ao carregar dados do Google Sheets:", error);
+    document.getElementById('caseStem').innerHTML = "<b>Erro de conexão.</b><br>Não foi possível carregar o jogo. Verifique se a planilha está com acesso 'Qualquer pessoa com o link'.";
+  }
+}
+
+// Substitua a função getDailyKey antiga por esta, mais simples
+function getDailyKey() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function iniciarJogo() {
+  currentDateKey = getDailyKey();
+  activeDateKey = currentDateKey;
+  
+  // Se não existir quiz para o dia de hoje, pega o último cadastrado na planilha
+  if (!QUIZZES[activeDateKey]) {
+      const datasDisponiveis = Object.keys(QUIZZES).sort();
+      if (datasDisponiveis.length > 0) {
+          activeDateKey = datasDisponiveis[datasDisponiveis.length - 1];
+      }
+  }
+  
+  if(QUIZZES[activeDateKey]) {
+      activeQuiz = QUIZZES[activeDateKey];
+      renderArchives();
+      renderGame();
+      renderStats();
+  }
+}
+
+// Dá o gatilho para baixar os dados assim que a página carrega
+carregarDadosDaPlanilha();
+
+    const screens = {
+      game: document.getElementById('screen-game'),
+      archives: document.getElementById('screen-archives'),
+      stats: document.getElementById('screen-stats'),
+      about: document.getElementById('screen-about')
+    };
+
+    const els = {
+      drawer: document.getElementById('drawer'),
+      drawerBackdrop: document.getElementById('drawerBackdrop'),
+      openDrawer: document.getElementById('openDrawer'),
+      closeDrawer: document.getElementById('closeDrawer'),
+      brandTitle: document.getElementById('brandTitle'),
+      gameMeta: document.getElementById('gameMeta'),
+      caseStem: document.getElementById('caseStem'),
+      hintsContainer: document.getElementById('hintsContainer'),
+      gameNotice: document.getElementById('gameNotice'),
+      guessInput: document.getElementById('guessInput'),
+      submitGuess: document.getElementById('submitGuess'),
+      skipHint: document.getElementById('skipHint'),
+      autocomplete: document.getElementById('autocomplete'),
+      guessList: document.getElementById('guessList'),
+      inputRow: document.getElementById('inputRow'),
+      resolvedRow: document.getElementById('resolvedRow'),
+      resolvedAnswer: document.getElementById('resolvedAnswer'),
+      learnMoreBtn: document.getElementById('learnMoreBtn'),
+      disclosureArea: document.getElementById('disclosureArea'),
+      summaryBox: document.getElementById('summaryBox'),
+      archiveGrid: document.getElementById('archiveGrid'),
+      statsGrid: document.getElementById('statsGrid'),
+      distribution: document.getElementById('distribution'),
+      percentileBox: document.getElementById('percentileBox'),
+      copyLatestShare: document.getElementById('copyLatestShare'),
+      latestSharePreview: document.getElementById('latestSharePreview'),
+      devToolbar: document.getElementById('devToolbar'),
+      resultModalBackdrop: document.getElementById('resultModalBackdrop'),
+      modalStatsGrid: document.getElementById('modalStatsGrid'),
+      modalDistribution: document.getElementById('modalDistribution'),
+      modalPercentileBox: document.getElementById('modalPercentileBox'),
+      modalSharePreview: document.getElementById('modalSharePreview'),
+      modalShareButton: document.getElementById('modalShareButton'),
+      closeResultModal: document.getElementById('closeResultModal')
+    };
+
+    let currentDateKey = getDailyKey();
+    let activeDateKey = currentDateKey;
+    let activeQuiz = QUIZZES[activeDateKey] || QUIZZES["2026-04-09"];
+    let highlightedIndex = -1;
+    let previousRevealedHints = 0;
+
+    function daysBetween(dateA, dateB) {
+      const a = new Date(dateA + 'T00:00:00');
+      const b = new Date(dateB + 'T00:00:00');
+      return Math.round((b - a) / (1000 * 60 * 60 * 24));
+    }
+
+    function setNotice(type, text, effect = '') {
+      if (!text) {
+        els.gameNotice.innerHTML = '';
+        return;
+      }
+      const extraClass = effect ? ` ${effect}` : '';
+      els.gameNotice.innerHTML = `<div class="notice ${type}${extraClass}">${text}</div>`;
+    }
+
+    function openDrawer() {
+      els.drawer.classList.add('show');
+      els.drawerBackdrop.classList.add('show');
+    }
+
+    function closeDrawer() {
+      els.drawer.classList.remove('show');
+      els.drawerBackdrop.classList.remove('show');
+    }
+
+    function setScreen(name) {
+      Object.entries(screens).forEach(([key, el]) => el.classList.toggle('active', key === name));
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === name));
+      els.brandTitle.textContent = name === 'archives' ? 'medtermo arquivos' : 'medtermo';
+      closeDrawer();
+      if (name === 'stats') renderStats();
+    }
+
+    function revealHints(progress) {
+      return activeQuiz.hints.map((text, i) => ({ text, visible: i < progress.revealedHints }));
+    }
+
+    function renderGame() {
+      const progress = loadProgress(activeDateKey);
+      const isToday = activeDateKey === currentDateKey;
+      const titlePrefix = isToday ? `Jogo do dia • #${activeQuiz.id}` : `Arquivo • #${activeQuiz.id}`;
+      els.gameMeta.textContent = `${titlePrefix} • ${activeQuiz.dateLabel}`;
+      els.caseStem.textContent = activeQuiz.stem;
+      els.summaryBox.style.display = 'none';
+      els.summaryBox.innerHTML = '';
+      els.disclosureArea.style.display = 'none';
+      els.disclosureArea.innerHTML = '';
+      els.inputRow.style.display = 'grid';
+      els.resolvedRow.style.display = 'none';
+      els.resolvedAnswer.textContent = '';
+
+      const hints = revealHints(progress);
+      const shouldAnimateReveal = progress.revealedHints > previousRevealedHints;
+      const isFinalState = progress.status === 'won' || progress.status === 'lost';
+      els.hintsContainer.innerHTML = hints.map((h, i) => {
+        const hiddenClass = h.visible ? '' : 'hidden';
+        const revealClass = shouldAnimateReveal && i === progress.revealedHints - 1 ? 'revealed' : '';
+        const finalRevealClass = isFinalState && i >= progress.revealedHints ? 'final-reveal hidden' : '';
+        const text = h.visible ? h.text : '';
+        return `<div class="hint ${hiddenClass} ${revealClass} ${finalRevealClass}" data-hint-index="${i}">${text}</div>`;
+      }).join('');
+      previousRevealedHints = progress.revealedHints;
+
+      if (isFinalState) {
+        triggerFinalHintReveal(progress.revealedHints);
+      }
+
+      renderGuessList(progress);
+      els.guessInput.value = '';
+      hideAutocomplete();
+      highlightedIndex = -1;
+      els.guessInput.disabled = progress.status !== 'playing';
+      els.submitGuess.disabled = progress.status !== 'playing';
+      els.skipHint.disabled = progress.status !== 'playing';
+
+      if (progress.status === 'won') {
+        setNotice('success', 'Você já concluiu o jogo de hoje.');
+        els.inputRow.style.display = 'none';
+        els.resolvedRow.style.display = 'grid';
+        els.resolvedAnswer.textContent = activeQuiz.answer;
+        showDisclosure(progress, true);
+      } else if (progress.status === 'lost') {
+        setNotice('warning', `Fim de jogo. O diagnóstico era: <strong>${activeQuiz.answer}</strong>.`);
+        els.inputRow.style.display = 'none';
+        els.resolvedRow.style.display = 'grid';
+        els.resolvedAnswer.textContent = activeQuiz.answer;
+        showDisclosure(progress, false);
+      } else {
+        setNotice('', '');
+      }
+    }
+
+    function normalize(str) {
+      return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function getDailyKey() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const key = `${yyyy}-${mm}-${dd}`;
+      return QUIZZES[key] ? key : "2026-04-09";
+    }
+
+    function getStorageKey(dateKey) {
+      return `medtermo-progress-${dateKey}`;
+    }
+
+    function getDevStorageKey(dateKey) {
+      return `medtermo-dev-progress-${dateKey}`;
+    }
+
+    function clearAllMedtermoStorage() {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('medtermo-')) localStorage.removeItem(key);
+      });
+    }
+
+    function setDevMode(value) {
+      DEV_MODE = value;
+      if (value) localStorage.setItem(DEV_MODE_STORAGE_KEY, '1');
+      else localStorage.removeItem(DEV_MODE_STORAGE_KEY);
+      renderDevToolbar();
+      previousRevealedHints = 0;
+      renderGame();
+      renderStats();
+      setNotice(value ? 'warning' : 'success', value ? 'Modo de desenvolvimento ativo: o progresso não está sendo salvo.' : 'Modo de desenvolvimento desativado.');
+    }
+
+    function hardResetForTesting() {
+      clearAllMedtermoStorage();
+      previousRevealedHints = 0;
+      renderGame();
+      renderStats();
+      setNotice('success', 'Progresso local resetado para teste.');
+    }
+
+    function renderDevToolbar() {
+      if (!els.devToolbar) {
+      console.log('devToolbar not found');
+      return;
+    }
+      const shouldShow = true; // force show for debugging
+      if (!shouldShow) {
+        els.devToolbar.innerHTML = '';
+        els.devToolbar.style.display = 'none';
+        return;
+      }
+      els.devToolbar.style.display = 'flex';
+      els.devToolbar.innerHTML = `
+        <button class="dev-chip" id="devReloadButton">Recarregar limpo</button>
+      `;
+      document.getElementById('devReloadButton')?.addEventListener('click', () => {
+        clearAllMedtermoStorage();
+        location.reload();
+      });
+    }
+
+    function getStatsKey() {
+      return 'medtermo-global-stats';
+    }
+
+    function defaultProgress(dateKey) {
+      return {
+        dateKey,
+        status: 'playing',
+        revealedHints: 0,
+        guesses: [],
+        wonAt: null,
+        finishedAt: null,
+        shareText: ''
+      };
+    }
+
+    function loadProgress(dateKey) {
+      if (DEV_MODE) return defaultProgress(dateKey);
+      const raw = localStorage.getItem(getStorageKey(dateKey));
+      if (!raw) return defaultProgress(dateKey);
+      try {
+        const parsed = { ...defaultProgress(dateKey), ...JSON.parse(raw) };
+        if (parsed.status === 'playing' && parsed.guesses.length === 0) parsed.revealedHints = 0;
+        return parsed;
+      } catch {
+        return defaultProgress(dateKey);
+      }
+    }
+
+    function saveProgress(dateKey, progress) {
+      if (DEV_MODE) return;
+      localStorage.setItem(getStorageKey(dateKey), JSON.stringify(progress));
+    }
+
+    function loadStats() {
+      const fallback = {
+        gamesPlayed: 0,
+        wins: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+        lastPlayedDate: null,
+        latestShareText: ''
+      };
+      if (DEV_MODE) return fallback;
+      const raw = localStorage.getItem(getStatsKey());
+      if (!raw) return fallback;
+      try {
+        return { ...fallback, ...JSON.parse(raw), distribution: { ...fallback.distribution, ...(JSON.parse(raw).distribution || {}) } };
+      } catch {
+        return fallback;
+      }
+    }
+
+    function saveStats(stats) {
+      if (DEV_MODE) return;
+      localStorage.setItem(getStatsKey(), JSON.stringify(stats));
+    }
+
+    function markGameInStats(dateKey, progress) {
+      if (DEV_MODE) return;
+      const countedKey = `medtermo-counted-${dateKey}`;
+      if (localStorage.getItem(countedKey)) return;
+
+      const stats = loadStats();
+      stats.gamesPlayed += 1;
+
+      if (progress.status === 'won') {
+        stats.wins += 1;
+        if (stats.lastPlayedDate) {
+          const diff = daysBetween(stats.lastPlayedDate, dateKey);
+          stats.currentStreak = diff === 1 ? stats.currentStreak + 1 : 1;
+        } else {
+          stats.currentStreak = 1;
+        }
+        stats.longestStreak = Math.max(stats.longestStreak, stats.currentStreak);
+        if (progress.wonAt && stats.distribution[progress.wonAt] !== undefined) {
+          stats.distribution[progress.wonAt] += 1;
+        }
+      } else {
+        stats.currentStreak = 0;
+      }
+
+      stats.lastPlayedDate = dateKey;
+      stats.latestShareText = progress.shareText || stats.latestShareText || '';
+      saveStats(stats);
+      localStorage.setItem(countedKey, '1');
+    }
+
+    function renderGuessList(progress) {
+      if (!progress.guesses.length) {
+        els.guessList.innerHTML = '';
+        return;
+      }
+      const isLost = progress.status === 'lost';
+      els.guessList.innerHTML = progress.guesses.map((g, idx) => {
+        const className = g.type === 'correct' ? 'correct' : g.type === 'skip' ? 'skip' : 'wrong';
+        const icon = g.type === 'correct' ? '✓' : g.type === 'skip' ? '–' : '✕';
+        const extra = g.type === 'correct' ? 'burst' : (isLost && idx === progress.guesses.length - 1 ? 'last-miss' : '');
+        return `<div class="guess-item ${className} ${extra}"><span>${idx + 1}. ${g.text}</span><strong>${icon}</strong></div>`;
+      }).join('');
+    }
+
+    function showDisclosure(progress, won) {
+      els.disclosureArea.style.display = 'none';
+      els.disclosureArea.innerHTML = '';
+    }
+
+    function getSuggestions(query) {
+      const q = normalize(query);
+      if (!q) return [];
+
+      const progress = loadProgress(activeDateKey);
+      const usedGuesses = progress.guesses.map(g => normalize(g.text));
+
+      return DISEASES
+        .filter(d => {
+          const norm = normalize(d);
+          return norm.includes(q) && !usedGuesses.includes(norm);
+        })
+        .slice(0, 8);
+    }
+
+    function renderAutocomplete(items) {
+      if (!items.length) {
+        hideAutocomplete();
+        return;
+      }
+      els.autocomplete.innerHTML = items.map((item, index) => `<div class="autocomplete-item ${index === highlightedIndex ? 'active' : ''}" data-value="${item.replace(/"/g, '&quot;')}">${item}</div>`).join('');
+      els.autocomplete.classList.add('show');
+      els.autocomplete.querySelectorAll('.autocomplete-item').forEach((itemEl, index) => {
+        itemEl.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          els.guessInput.value = itemEl.dataset.value;
+          hideAutocomplete();
+          highlightedIndex = index;
+        });
+      });
+    }
+
+    function hideAutocomplete() {
+      els.autocomplete.classList.remove('show');
+      els.autocomplete.innerHTML = '';
+    }
+
+    function buildShareText(progress) {
+      const icons = progress.guesses.map(g => {
+        if (g.type === 'correct') return '🟩';
+        if (g.type === 'skip') return '⬛';
+        return '🟥';
+      });
+
+      const totalHints = activeQuiz.hints.length;
+      const usedHints = progress.revealedHints;
+      const remainingHints = Math.max(0, totalHints - usedHints);
+
+      const remainingBlocks = Array.from({ length: remainingHints }, () => '⬛');
+
+      const fullGrid = [...icons, ...remainingBlocks].join(' ');
+
+      const attempts = progress.guesses.filter(g => g.type !== 'skip').length;
+      const turns = progress.guesses.length;
+
+      const performanceLine = progress.status === 'won'
+        ? `✅ Acertei em ${attempts} tentativa${attempts > 1 ? 's' : ''}`
+        : `❌ Não consegui em ${turns} rodada${turns > 1 ? 's' : ''}`;
+
+      return `medtermo #${activeQuiz.id} • ${activeQuiz.dateLabel}
+${fullGrid || '⬜'}
+${performanceLine}
+🩺 Caso diário de raciocínio clínico
+https://medtermo.com`;
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(temp);
+        return ok;
+      }
+    }
+
+    async function finishGame(status, progress) {
+      progress.status = status;
+      progress.finishedAt = new Date().toISOString();
+      if (status === 'won') {
+        progress.wonAt = progress.guesses.filter(g => g.type !== 'skip').length;
+      }
+      progress.shareText = buildShareText(progress);
+      saveProgress(activeDateKey, progress);
+      markGameInStats(activeDateKey, progress);
+      renderGame();
+      renderStats();
+      triggerResultAnimation(status);
+
+      setNotice(
+        status === 'won' ? 'success' : 'warning',
+        `${status === 'won' ? 'Diagnóstico correto.' : 'Fim de jogo.'} Confira suas estatísticas e compartilhe o resultado.`,
+        status === 'won' ? 'win-burst' : 'lose-burst'
+      );
+
+      setTimeout(() => openResultModal(status), 350);
+    }
+
+    function submitGuess() {
+      const progress = loadProgress(activeDateKey);
+      if (progress.status !== 'playing') return;
+
+      const raw = els.guessInput.value.trim();
+      if (!raw) return;
+
+      const exact = DISEASES.find(d => normalize(d) === normalize(raw));
+      if (!exact) {
+        setNotice('error', 'Selecione uma das opções sugeridas.');
+        renderAutocomplete(getSuggestions(raw));
+        shakeNewestHiddenHint();
+        return;
+      }
+
+      const guessText = exact;
+
+      if (progress.guesses.some(g => normalize(g.text) === normalize(guessText))) {
+        setNotice('error', 'Esse palpite já foi utilizado.');
+        shakeNewestHiddenHint();
+        return;
+      }
+
+      const isCorrect = normalize(guessText) === normalize(activeQuiz.answer);
+      progress.guesses.push({ text: guessText, type: isCorrect ? 'correct' : 'wrong' });
+
+      if (isCorrect) {
+        saveProgress(activeDateKey, progress);
+        finishGame('won', progress);
+        return;
+      }
+
+      if (progress.revealedHints < activeQuiz.hints.length) progress.revealedHints += 1;
+
+      const wrongAttempts = progress.guesses.filter(g => g.type === 'wrong').length;
+      const skips = progress.guesses.filter(g => g.type === 'skip').length;
+      const totalTurns = wrongAttempts + skips;
+
+      saveProgress(activeDateKey, progress);
+      renderGame();
+      setNotice('error', 'Incorreto. Uma nova dica foi liberada.');
+
+      if (totalTurns >= 6 && progress.status === 'playing') {
+        finishGame('lost', progress);
+      }
+    }
+
+    function skipHint() {
+      const progress = loadProgress(activeDateKey);
+      if (progress.status !== 'playing') return;
+      progress.guesses.push({ text: 'Pulou', type: 'skip' });
+      if (progress.revealedHints < activeQuiz.hints.length) progress.revealedHints += 1;
+      saveProgress(activeDateKey, progress);
+      renderGame();
+      setNotice('warning', 'Dica pulada. A próxima dica foi revelada.');
+
+      const totalTurns = progress.guesses.filter(g => g.type === 'wrong' || g.type === 'skip').length;
+      if (totalTurns >= 6 && progress.status === 'playing') {
+        finishGame('lost', progress);
+      }
+    }
+
+    function shakeNewestHiddenHint() {
+      const hidden = els.hintsContainer.querySelector('.hint.hidden');
+      if (!hidden) return;
+      hidden.classList.remove('shake-out');
+      void hidden.offsetWidth;
+      hidden.classList.add('shake-out');
+      hidden.addEventListener('animationend', () => hidden.classList.remove('shake-out'), { once: true });
+    }
+
+    function triggerFinalHintReveal(startIndex) {
+      const hiddenHints = Array.from(els.hintsContainer.querySelectorAll('.hint.final-reveal'));
+      if (!hiddenHints.length) return;
+      hiddenHints.forEach((hint) => {
+        hint.classList.remove('hidden');
+        hint.classList.remove('final-reveal');
+        void hint.offsetWidth;
+        hint.classList.add('revealed');
+      });
+    }
+
+    function triggerResultAnimation(status) {
+      const app = document.querySelector('.app');
+      app.classList.remove('result-win', 'result-lose');
+      void app.offsetWidth;
+      app.classList.add(status === 'won' ? 'result-win' : 'result-lose');
+      if (status === 'won') {
+        spawnConfetti();
+      } else {
+        spawnSparks();
+      }
+      setTimeout(() => app.classList.remove('result-win', 'result-lose'), 1400);
+    }
+
+    function spawnConfetti() {
+      const layer = document.createElement('div');
+      layer.className = 'confetti-layer';
+      const colors = ['#7aa7d9', '#4d97d2', '#9ccfad', '#f3c97a', '#b6cae2'];
+      for (let i = 0; i < 34; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'confetti-piece';
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDuration = `${1.7 + Math.random() * 1.2}s`;
+        piece.style.setProperty('--drift', `${-90 + Math.random() * 180}px`);
+        piece.style.setProperty('--rot', `${120 + Math.random() * 520}deg`);
+        document.body.appendChild(layer);
+        layer.appendChild(piece);
+      }
+      document.body.appendChild(layer);
+      setTimeout(() => layer.remove(), 3200);
+    }
+
+    function spawnSparks() {
+      const layer = document.createElement('div');
+      layer.className = 'spark-layer';
+      const colors = ['#e8c48a', '#e6a6b2', '#b7d1e7', '#9ccfad'];
+      const rect = document.querySelector('.panel').getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height * 0.34;
+      for (let i = 0; i < 18; i++) {
+        const piece = document.createElement('span');
+        piece.className = 'spark-piece';
+        piece.style.left = `${originX}px`;
+        piece.style.top = `${originY}px`;
+        piece.style.background = colors[i % colors.length];
+        const angle = (Math.PI * 2 * i) / 18;
+        const dist = 70 + Math.random() * 70;
+        piece.style.setProperty('--x', `${Math.cos(angle) * dist}px`);
+        piece.style.setProperty('--y', `${Math.sin(angle) * dist}px`);
+        piece.style.animationDuration = `${0.6 + Math.random() * 0.35}s`;
+        layer.appendChild(piece);
+      }
+      document.body.appendChild(layer);
+      setTimeout(() => layer.remove(), 1200);
+    }
+
+    function buildStatsMarkup(stats) {
+      const winRate = stats.gamesPlayed ? Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
+      const statsGridHtml = `
+        <div class="stat-card"><strong>${stats.gamesPlayed}</strong><span>JOGOS</span></div>
+        <div class="stat-card"><strong>${winRate}%</strong><span>ACERTOS</span></div>
+        <div class="stat-card"><strong>${stats.currentStreak}</strong><span>SEQUÊNCIA</span></div>
+        <div class="stat-card"><strong>${stats.longestStreak}</strong><span>RECORDE</span></div>
+      `;
+
+      const maxVal = Math.max(1, ...Object.values(stats.distribution));
+      const distributionHtml = [1,2,3,4,5,6].map(n => {
+        const value = stats.distribution[n] || 0;
+        const width = Math.max(2, Math.round((value / maxVal) * 100));
+        return `
+          <div class="dist-row">
+            <div>${n}</div>
+            <div class="bar-wrap"><div class="bar" style="width:${value ? width : 0}%">${value ? value : ''}</div></div>
+            <div>${value}</div>
+          </div>
+        `;
+      }).join('');
+
+      const percentileText = stats.gamesPlayed === 0
+        ? 'Complete um jogo para gerar estatísticas.'
+        : `Estimativa demonstrativa: você ficou melhor que aproximadamente ${Math.max(1, Math.min(99, 100 - Math.round((winRate / 2))))}% dos jogadores no último resultado registrado.`;
+
+      return {
+        statsGridHtml,
+        distributionHtml,
+        percentileText,
+        latestShareText: stats.latestShareText || 'Nenhum resultado compartilhável ainda.'
+      };
+    }
+
+    function renderStats() {
+      const stats = loadStats();
+      const markup = buildStatsMarkup(stats);
+      els.statsGrid.innerHTML = markup.statsGridHtml;
+      els.distribution.innerHTML = markup.distributionHtml;
+      els.latestSharePreview.textContent = markup.latestShareText;
+      els.percentileBox.textContent = markup.percentileText;
+    }
+
+    function openResultModal(status) {
+      const stats = loadStats();
+      const markup = buildStatsMarkup(stats);
+      els.modalStatsGrid.innerHTML = markup.statsGridHtml;
+      els.modalDistribution.innerHTML = markup.distributionHtml;
+      els.modalPercentileBox.textContent = markup.percentileText;
+      els.modalSharePreview.textContent = markup.latestShareText;
+      document.getElementById('resultModalTitle').textContent = status === 'won' ? 'Diagnóstico correto' : 'Fim de jogo';
+      document.getElementById('resultModalSubtitle').textContent = status === 'won'
+        ? 'Boa. Compartilhe seu resultado e desafie os seus amigos!'
+        : 'Você fechou o quiz de hoje. Compartilhe seu resultado mesmo assim.';
+      els.resultModalBackdrop.classList.add('show');
+    }
+
+    function closeResultModal() {
+      els.resultModalBackdrop.classList.remove('show');
+    }
+
+    async function handleShareLatestResult(e) {
+      const text = loadStats().latestShareText;
+      if (!text) return;
+
+      const btn = e?.target;
+      const originalText = btn?.textContent;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text, title: 'medtermo' });
+          if (btn) {
+            btn.textContent = 'Copiado!';
+            setTimeout(() => btn.textContent = originalText, 1500);
+          }
+          return;
+        } catch {}
+      }
+
+      const ok = await copyText(text);
+      if (ok && btn) {
+        btn.textContent = 'Copiado!';
+        setTimeout(() => btn.textContent = originalText, 1500);
+      }
+    }
+
+    document.getElementById('copyLatestShare').addEventListener('click', handleShareLatestResult);
+    els.modalShareButton.addEventListener('click', handleShareLatestResult);
+    document.getElementById('shareResultBtn')?.addEventListener('click', handleShareLatestResult);
+
+    els.openDrawer.addEventListener('click', openDrawer);
+    els.closeDrawer.addEventListener('click', closeDrawer);
+    els.drawerBackdrop.addEventListener('click', closeDrawer);
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => setScreen(btn.dataset.nav));
+    });
+
+    els.submitGuess.addEventListener('click', submitGuess);
+    els.skipHint.addEventListener('click', skipHint);
+    els.guessInput.addEventListener('input', () => {
+      highlightedIndex = -1;
+      renderAutocomplete(getSuggestions(els.guessInput.value));
+    });
+
+    els.guessInput.addEventListener('keydown', (e) => {
+      const items = Array.from(document.querySelectorAll('.autocomplete-item'));
+      if (e.key === 'ArrowDown' && items.length) {
+        e.preventDefault();
+        highlightedIndex = (highlightedIndex + 1) % items.length;
+        renderAutocomplete(getSuggestions(els.guessInput.value));
+      } else if (e.key === 'ArrowUp' && items.length) {
+        e.preventDefault();
+        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+        renderAutocomplete(getSuggestions(els.guessInput.value));
+      } else if (e.key === 'Enter') {
+        if (items.length && highlightedIndex >= 0) {
+          e.preventDefault();
+          els.guessInput.value = items[highlightedIndex].dataset.value;
+          hideAutocomplete();
+        } else {
+          submitGuess();
+        }
+      } else if (e.key === 'Escape') {
+        hideAutocomplete();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!els.autocomplete.contains(e.target) && e.target !== els.guessInput) hideAutocomplete();
+      if (e.target === els.resultModalBackdrop) closeResultModal();
+    });
+
+    els.closeResultModal.addEventListener('click', closeResultModal);
+    els.learnMoreBtn.addEventListener('click', () => {
+  const isOpen = els.summaryBox.style.display === 'block';
+
+  if (isOpen) {
+    els.summaryBox.style.display = 'none';
+    els.summaryBox.innerHTML = '';
+    els.learnMoreBtn.textContent = 'Quero aprender mais';
+    return;
+  }
+
+  els.summaryBox.style.display = 'block';
+  els.summaryBox.innerHTML = `<h4>Resumo</h4><div>${activeQuiz.summary}</div>`;
+  els.learnMoreBtn.textContent = 'Ocultar resumo';
+
+  els.summaryBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+    if (RESET_ON_LOAD) {
+      clearAllMedtermoStorage();
+    }
+
+    renderDevToolbar();
+
+    if (DEV_MODE) {
+      setNotice('warning', 'Modo de desenvolvimento ativo: o progresso não está sendo salvo.');
+    }
+
+    function renderArchives() {
+      const entries = Object.entries(QUIZZES);
+      els.archiveGrid.innerHTML = entries.map(([key, quiz]) => {
+        return `<div class="archive-card" data-key="${key}">
+          Dia ${quiz.id}
+          <small>${quiz.dateLabel}</small>
+        </div>`;
+      }).join('');
+
+      els.archiveGrid.querySelectorAll('.archive-card').forEach(card => {
+        card.addEventListener('click', () => {
+          activeDateKey = card.dataset.key;
+          activeQuiz = QUIZZES[activeDateKey];
+          previousRevealedHints = 0;
+          setScreen('game');
+          renderGame();
+        });
+      });
+    }
+
+  
+  </script>
+</body>
+</html>
