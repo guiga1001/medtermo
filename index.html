@@ -254,33 +254,77 @@
       overflow-wrap: anywhere;
     }
 
-
+    /* ---- NOVA ESTRUTURA DOS BALÕES (HINTS) ---- */
     .hints {
-      display: grid;
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
       margin: 8px 0 16px;
+      width: 100%;
     }
 
     .hint {
+      --hint-bg: #fbfcfc;
+      --hint-locked-bg: #e3ecea;
+      --hint-border: #bfd2ce;
+      --hint-locked-border: #cfdedb;
+      --hint-text-color: #284240;
+      --hint-num-side: #79a5a0;
+      --hint-num-center: #8fa8a5;
+      --hint-shadow: none;
+
+      width: 100%;
       min-height: 48px;
       border-radius: 10px;
-      background: #fbfcfc;
-      border: 1px solid #bfd2ce;
+      background: var(--hint-bg);
+      border: 1px solid var(--hint-border);
+      box-shadow: var(--hint-shadow);
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 12px 14px;
+      padding: 12px 14px 12px 42px; /* Espaço para o número lateral */
       font-weight: 500;
       font-size: 14px;
       line-height: 1.5;
-      color: #284240;
-      transition: opacity .22s ease, background .22s ease, border-color .22s ease;
-      transform-origin: center center;
-      backface-visibility: hidden;
-      transform-style: preserve-3d;
+      color: var(--hint-text-color);
       position: relative;
       overflow: hidden;
+      transform-style: preserve-3d;
+      margin: 0 auto;
+      transition: opacity .22s ease, border-color .22s ease;
+    }
+
+    html.dark-theme .hint {
+      --hint-bg: #152226;
+      --hint-locked-bg: #1b2a2f;
+      --hint-border: #2a3c40;
+      --hint-locked-border: #2f464c;
+      --hint-text-color: #e5f0ee;
+      --hint-num-side: #88bab4;
+      --hint-num-center: #5b7a76;
+      --hint-shadow: 0 12px 28px rgba(0,0,0,0.14);
+    }
+
+    .hint-number-side {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Fraunces', serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--hint-num-side);
+      display: block;
+    }
+
+    .hint-number-center {
+      display: none;
+      font-family: 'Fraunces', serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--hint-num-center);
     }
 
     .hint-text {
@@ -292,26 +336,124 @@
       overflow-wrap: anywhere;
     }
 
+    /* Estado bloqueado (mini-balão) */
     .hint.hidden {
       user-select: none;
-      background: #e3ecea;
-      border: 1px solid #bfd2ce;
+      width: 44px;
+      min-height: 44px;
+      padding: 0;
+      border-radius: 22px;
+      background: var(--hint-locked-bg);
+      border-color: var(--hint-locked-border);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
-      min-height: 48px;
+      cursor: default;
     }
 
+    html.dark-theme .hint.hidden {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), inset 0 -1px 0 rgba(0,0,0,0.16);
+    }
+
+    .hint.hidden .hint-number-side,
     .hint.hidden .hint-text {
-      color: transparent;
+      display: none;
     }
 
+    .hint.hidden .hint-number-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
 
+    /* Animação ao revelar */
     .hint.revealed {
-      animation: hintFlipUp .58s cubic-bezier(.2,.8,.2,1);
+      animation: hintExpandFlip 1s cubic-bezier(.2,.8,.2,1) forwards;
     }
 
-    .hint.final-reveal {
-      animation: hintFlipUp .64s cubic-bezier(.2,.8,.2,1);
+    .hint.revealed .hint-number-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      animation: fadeOutCenter 0.25s forwards;
     }
+
+    .hint.revealed .hint-number-side,
+    .hint.revealed .hint-text {
+      display: block;
+      animation: fadeInText 1s forwards;
+    }
+
+    @keyframes fadeOutCenter {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes fadeInText {
+      0%, 75% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes hintExpandFlip {
+      0% {
+        width: 44px;
+        min-height: 44px;
+        padding: 0;
+        border-radius: 22px;
+        background: var(--hint-locked-bg);
+        border-color: var(--hint-locked-border);
+        box-shadow: none;
+        transform: perspective(1000px) rotateX(0deg);
+        color: transparent;
+      }
+      15% {
+        width: 44px;
+        min-height: 44px;
+        padding: 0;
+        border-radius: 22px;
+        background: var(--hint-bg);
+        border-color: var(--hint-border);
+        box-shadow: var(--hint-shadow);
+        transform: perspective(1000px) rotateX(0deg);
+        color: transparent;
+      }
+      45% {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px 12px 42px;
+        border-radius: 10px;
+        background: var(--hint-bg);
+        border-color: var(--hint-border);
+        box-shadow: var(--hint-shadow);
+        transform: perspective(1000px) rotateX(0deg);
+        color: transparent;
+      }
+      75% {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px 12px 42px;
+        border-radius: 10px;
+        background: var(--hint-bg);
+        border-color: var(--hint-border);
+        box-shadow: var(--hint-shadow);
+        transform: perspective(1000px) rotateX(180deg);
+        color: transparent;
+      }
+      100% {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px 12px 42px;
+        border-radius: 10px;
+        background: var(--hint-bg);
+        border-color: var(--hint-border);
+        box-shadow: var(--hint-shadow);
+        transform: perspective(1000px) rotateX(0deg);
+        color: var(--hint-text-color);
+      }
+    }
+    /* ------------------------------------------- */
 
     .hint.shake-out {
       animation: hintShake .44s ease;
@@ -406,18 +548,6 @@
       opacity: 0.95;
       animation: victorySparkBurst ease-out forwards;
       box-shadow: 0 0 14px currentColor;
-    }
-
-    @keyframes hintFlipUp {
-      0% {
-        transform: perspective(1000px) rotateX(180deg);
-      }
-      60% {
-        transform: perspective(1000px) rotateX(-8deg);
-      }
-      100% {
-        transform: perspective(1000px) rotateX(0deg);
-      }
     }
 
     @keyframes hintShake {
@@ -1226,8 +1356,6 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-
-
     .archive-jump-nav {
       display: none;
       grid-template-columns: 40px minmax(0, 1fr) 40px;
@@ -1313,7 +1441,6 @@
       transform: rotate(45deg);
       margin-right: 3px;
     }
-
 
     @media (max-width: 760px) {
       .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1452,7 +1579,6 @@
       border: 1px solid #bfd2ce;
       min-height: 48px;
     }
-
   
     .game-flip-wrap {
       perspective: 1400px;
@@ -1621,7 +1747,6 @@
         text-align: left !important;
       }
     }
-
 
     .notice.compact-status {
       margin: 10px auto 12px;
@@ -1848,10 +1973,6 @@
       }
     }
 
-
-
-
-    /* v29: apenas o título e as caixas giram ao abrir o resumo */
     .game-flip-wrap {
       perspective: 1400px;
       width: 100%;
@@ -1907,8 +2028,6 @@
       justify-content: center;
       gap: 10px;
     }
-
-
 
     .theme-toggle {
       position: absolute;
@@ -2109,14 +2228,6 @@
       color: #9fb3b0;
     }
 
-    html.dark-theme .case-card,
-    html.dark-theme .hint {
-      background: #152226;
-      border-color: #2a3c40;
-      color: #e5f0ee;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.14);
-    }
-
     html.dark-theme .archive-jump-center {
       color: #8da6a1;
     }
@@ -2179,14 +2290,7 @@
       box-shadow: 0 12px 28px rgba(12, 22, 19, 0.22);
     }
 
-    html.dark-theme .hint.hidden {
-      background: #1b2a2f;
-      border-color: #2f464c;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), inset 0 -1px 0 rgba(0,0,0,0.16);
-    }
-
     html.dark-theme .case-card,
-    html.dark-theme .hint,
     html.dark-theme .guess-item,
     html.dark-theme .archive-card,
     html.dark-theme .summary-card,
@@ -2402,11 +2506,24 @@
                   </div>
                 </div>
                 <div class="hints" id="hintsContainer">
-                  <div class="hint skeleton-block"></div>
-                  <div class="hint skeleton-block"></div>
-                  <div class="hint skeleton-block"></div>
-                  <div class="hint skeleton-block"></div>
-                  <div class="hint skeleton-block"></div>
+                  <div class="hint skeleton-block">
+                    <div class="hint-number-side">1</div>
+                  </div>
+                  <div class="hint hidden skeleton-block">
+                    <div class="hint-number-center">2</div>
+                  </div>
+                  <div class="hint hidden skeleton-block">
+                    <div class="hint-number-center">3</div>
+                  </div>
+                  <div class="hint hidden skeleton-block">
+                    <div class="hint-number-center">4</div>
+                  </div>
+                  <div class="hint hidden skeleton-block">
+                    <div class="hint-number-center">5</div>
+                  </div>
+                  <div class="hint hidden skeleton-block">
+                    <div class="hint-number-center">6</div>
+                  </div>
                 </div>
               </div>
               <div class="game-face game-face-back" id="gameFlipBack">
@@ -3432,13 +3549,19 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
       const hints = revealHints(progress);
       const shouldAnimateReveal = progress.revealedHints > previousRevealedHints;
       const isFinalState = progress.status === 'won' || progress.status === 'lost';
+      
       els.hintsContainer.innerHTML = hints.map((h, i) => {
         const hiddenClass = h.visible ? '' : 'hidden';
         const revealClass = shouldAnimateReveal && i === progress.revealedHints - 1 ? 'revealed' : '';
         const finalRevealClass = isFinalState && i >= progress.revealedHints ? 'final-reveal hidden' : '';
         const text = h.text || '';
-        return `<div class="hint ${hiddenClass} ${revealClass} ${finalRevealClass}" data-hint-index="${i}"><span class="hint-text">${text}</span></div>`;
+        return `<div class="hint ${hiddenClass} ${revealClass} ${finalRevealClass}" data-hint-index="${i}">
+          <div class="hint-number-center">${i + 1}</div>
+          <div class="hint-number-side">${i + 1}</div>
+          <span class="hint-text">${text}</span>
+        </div>`;
       }).join('');
+      
       previousRevealedHints = progress.revealedHints;
       requestAnimationFrame(updateGameFlipHeight);
 
@@ -3998,7 +4121,7 @@ ${blocks.join(' ')}
       const hiddenHints = Array.from(els.hintsContainer.querySelectorAll('.hint.final-reveal'));
       if (!hiddenHints.length) return;
 
-      const staggerMs = 160;
+      const staggerMs = 250;
 
       hiddenHints.forEach((hint, offset) => {
         const hintIndex = Number(hint.dataset.hintIndex);
