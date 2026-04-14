@@ -228,7 +228,6 @@
       letter-spacing: 0.06em;
     }
 
-    /* A caixa inicial do caso agora é estilizada como as dicas seguintes */
     .case-card {
       min-height: 48px;
       border-radius: 10px;
@@ -238,7 +237,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 12px 64px; /* Simétrico para forçar centralização do texto com margem segura para o "dica 1" */
+      padding: 12px 48px; /* Reduzido para 48px: sobra espaço, mantém centrado */
       margin-bottom: 4px;
       font-weight: 500;
       font-size: 14px;
@@ -255,28 +254,11 @@
       overflow-wrap: anywhere;
     }
 
-    .case-card .hint-number-side {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: 'Fraunces', serif;
-      font-weight: 800;
-      font-size: 15px;
-      color: #79a5a0 !important;
-      display: block;
-      z-index: 2;
-    }
-
     html.dark-theme .case-card {
       background: #152226;
       border-color: #2a3c40;
       color: #e5f0ee;
       box-shadow: 0 12px 28px rgba(0,0,0,0.14);
-    }
-
-    html.dark-theme .case-card .hint-number-side {
-      color: #88bab4 !important;
     }
 
     /* ---- ESTRUTURA DOS BALÕES (HINTS) ---- */
@@ -285,7 +267,7 @@
       flex-direction: column;
       align-items: center;
       gap: 6px;
-      margin: 4px 0 6px; /* Ajuste crítico: Remove o espaço gigante residual */
+      margin: 4px 0 6px;
       width: 100%;
     }
 
@@ -309,7 +291,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 12px 64px; /* Simétrico garantindo que o texto nunca sobreponha o label lateral */
+      padding: 12px 48px; /* Mantém a proporção simétrica sem esmagar o texto */
       font-weight: 500;
       font-size: 14px;
       line-height: 1.5;
@@ -331,16 +313,40 @@
       --hint-shadow: 0 12px 28px rgba(0,0,0,0.14);
     }
 
+    /* NOVA CLASSE: ESTRUTURA EMPILHADA "DICA" + "NUMERO" */
     .hint-number-side {
       position: absolute;
-      left: 16px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--hint-num-side);
+      z-index: 2;
+    }
+
+    .hint-label-dica {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 2px;
+      opacity: 0.85;
+      font-family: "Manrope", sans-serif;
+    }
+
+    .hint-label-num {
       font-family: 'Fraunces', serif;
       font-weight: 800;
-      font-size: 15px; /* Tamanho ajustado para comportar a palavra "dica" */
-      color: var(--hint-num-side);
-      display: block;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    html.dark-theme .case-card .hint-number-side {
+      color: #88bab4 !important;
     }
 
     .hint-number-center {
@@ -404,12 +410,10 @@
 
     .hint.revealed .hint-number-side,
     .hint.final-reveal .hint-number-side {
-      display: block;
+      display: flex;
       animation: showAfterFlip 1.1s forwards;
     }
 
-    /* ESSENCIAL: Impede que o texto quebre dezenas de vezes espremido nos 44px
-       durante o primeiro frame, o que empurrava o site para baixo bizarramente. */
     .hint.revealed .hint-text,
     .hint.final-reveal .hint-text {
       display: block;
@@ -429,11 +433,11 @@
 
     @keyframes textFlowWait {
       0%, 35% {
-        position: absolute; /* Remove do fluxo para não afetar o height */
+        position: absolute;
         opacity: 0;
       }
       36%, 60% {
-        position: relative; /* Volta ao fluxo com a div já esticada a 100% */
+        position: relative;
         opacity: 0;
       }
       100% {
@@ -456,7 +460,7 @@
       35% {
         width: 100%;
         min-height: 48px;
-        padding: 12px 64px;
+        padding: 12px 48px;
         border-radius: 10px;
         background: var(--hint-locked-bg);
         border-color: var(--hint-locked-border);
@@ -472,7 +476,7 @@
       100% {
         width: 100%;
         min-height: 48px;
-        padding: 12px 64px;
+        padding: 12px 48px;
         border-radius: 10px;
         background: var(--hint-bg);
         border-color: var(--hint-border);
@@ -697,7 +701,7 @@
       gap: 8px;
       align-items: center;
       position: relative;
-      margin-top: 0; /* Remove a margem desnecessária forçando o scroll */
+      margin-top: 0;
       border: 0;
       box-shadow: none;
     }
@@ -787,7 +791,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 2px 0 6px; /* Ajuste crítico: garante a aproximação */
+      margin: 2px 0 6px;
     }
 
     .notice-slot:empty::before {
@@ -2373,7 +2377,10 @@
               <div class="game-face game-face-front" id="gameFlipFront">
                 <div class="question-title">Qual é o diagnóstico?</div>
                 <div class="case-card skeleton-block" id="caseStem">
-                  <div class="hint-number-side">dica 1</div>
+                  <div class="hint-number-side">
+                    <span class="hint-label-dica">DICA</span>
+                    <span class="hint-label-num">1</span>
+                  </div>
                   <span class="hint-text" id="caseStemText">
                     <div style="width:100%; display:grid; gap:10px;">
                       <div class="skeleton-line"></div>
@@ -3325,9 +3332,6 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
       if (!els.gameFlipWrap || !els.gameFlipInner || !els.gameFlipFront || !els.gameFlipBack) return;
       const isSummaryOpen = els.gameFlipWrap.classList.contains('show-summary');
       
-      // Ajuste Crítico: Apenas prende a altura mínima se estiver na tela traseira (resumo).
-      // Na tela da frente, o height flui naturalmente, impedindo que o scrollHeight
-      // force o espaço vazio residual embaixo.
       if (isSummaryOpen) {
         const backHeight = els.gameFlipBack.scrollHeight || 0;
         els.gameFlipWrap.style.minHeight = `${backHeight}px`;
@@ -3410,11 +3414,10 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
         : `${titlePrefix} • ${activeQuiz.dateLabel}`;
       renderArchiveNavigation();
 
-      // Ajuste para exibir a numeração "dica 1" na caixa inicial (caso clínico)
       els.caseStem.classList.remove('skeleton-block');
       let stemTextEl = els.caseStem.querySelector('.hint-text');
       if (!stemTextEl) {
-          els.caseStem.innerHTML = `<div class="hint-number-side">dica 1</div><span class="hint-text"></span>`;
+          els.caseStem.innerHTML = `<div class="hint-number-side"><span class="hint-label-dica">DICA</span><span class="hint-label-num">1</span></div><span class="hint-text"></span>`;
           stemTextEl = els.caseStem.querySelector('.hint-text');
       }
       stemTextEl.textContent = activeQuiz.stem;
@@ -3445,7 +3448,10 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
         const text = h.text || '';
         return `<div class="hint ${hiddenClass} ${revealClass} ${finalRevealClass}" data-hint-index="${i}">
           <div class="hint-number-center">${num}</div>
-          <div class="hint-number-side">dica ${num}</div>
+          <div class="hint-number-side">
+            <span class="hint-label-dica">DICA</span>
+            <span class="hint-label-num">${num}</span>
+          </div>
           <span class="hint-text">${text}</span>
         </div>`;
       }).join('');
