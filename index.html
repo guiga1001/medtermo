@@ -228,34 +228,42 @@
       letter-spacing: 0.06em;
     }
 
+    /* A caixa inicial do caso agora é estilizada como as dicas seguintes */
     .case-card {
       min-height: 48px;
       border-radius: 10px;
-      background: var(--card); /* Agora visualmente igual aos balões de dica */
+      background: var(--card);
       border: 1px solid #bfd2ce;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 12px 42px; /* Espaçamento simétrico garantindo a centralização do texto */
-      margin-bottom: 10px;
+      padding: 12px 64px; /* Simétrico para forçar centralização do texto com margem segura para o "dica 1" */
+      margin-bottom: 4px;
       font-weight: 500;
       font-size: 14px;
       line-height: 1.5;
       color: #284240;
+      transition: opacity .22s ease, background .22s ease, border-color .22s ease;
+      transform-origin: center center;
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
       position: relative;
       overflow: hidden;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .case-card .hint-number-side {
       position: absolute;
-      left: 14px;
+      left: 16px;
       top: 50%;
       transform: translateY(-50%);
       font-family: 'Fraunces', serif;
       font-weight: 800;
-      font-size: 18px;
-      color: #79a5a0 !important; /* Importante para sobrepor a opacidade da tela de loading */
+      font-size: 15px;
+      color: #79a5a0 !important;
       display: block;
       z-index: 2;
     }
@@ -276,8 +284,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      margin: 0 0 4px; /* Margem reduzida para aproximar do input */
+      gap: 6px;
+      margin: 4px 0 6px; /* Ajuste crítico: Remove o espaço gigante residual */
       width: 100%;
     }
 
@@ -301,7 +309,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 12px 42px; /* Simétrico: 42px em ambos os lados, forçando o texto pro centro */
+      padding: 12px 64px; /* Simétrico garantindo que o texto nunca sobreponha o label lateral */
       font-weight: 500;
       font-size: 14px;
       line-height: 1.5;
@@ -325,12 +333,12 @@
 
     .hint-number-side {
       position: absolute;
-      left: 14px;
+      left: 16px;
       top: 50%;
       transform: translateY(-50%);
       font-family: 'Fraunces', serif;
       font-weight: 800;
-      font-size: 18px;
+      font-size: 15px; /* Tamanho ajustado para comportar a palavra "dica" */
       color: var(--hint-num-side);
       display: block;
     }
@@ -395,11 +403,17 @@
     }
 
     .hint.revealed .hint-number-side,
-    .hint.revealed .hint-text,
-    .hint.final-reveal .hint-number-side,
-    .hint.final-reveal .hint-text {
+    .hint.final-reveal .hint-number-side {
       display: block;
       animation: showAfterFlip 1.1s forwards;
+    }
+
+    /* ESSENCIAL: Impede que o texto quebre dezenas de vezes espremido nos 44px
+       durante o primeiro frame, o que empurrava o site para baixo bizarramente. */
+    .hint.revealed .hint-text,
+    .hint.final-reveal .hint-text {
+      display: block;
+      animation: textFlowWait 1.1s forwards;
     }
 
     @keyframes fadeOutCenter {
@@ -411,6 +425,21 @@
     @keyframes showAfterFlip {
       0%, 60% { opacity: 0; }
       100% { opacity: 1; }
+    }
+
+    @keyframes textFlowWait {
+      0%, 35% {
+        position: absolute; /* Remove do fluxo para não afetar o height */
+        opacity: 0;
+      }
+      36%, 60% {
+        position: relative; /* Volta ao fluxo com a div já esticada a 100% */
+        opacity: 0;
+      }
+      100% {
+        position: relative;
+        opacity: 1;
+      }
     }
 
     @keyframes hintExpandFlip {
@@ -427,7 +456,7 @@
       35% {
         width: 100%;
         min-height: 48px;
-        padding: 12px 42px;
+        padding: 12px 64px;
         border-radius: 10px;
         background: var(--hint-locked-bg);
         border-color: var(--hint-locked-border);
@@ -443,7 +472,7 @@
       100% {
         width: 100%;
         min-height: 48px;
-        padding: 12px 42px;
+        padding: 12px 64px;
         border-radius: 10px;
         background: var(--hint-bg);
         border-color: var(--hint-border);
@@ -668,7 +697,7 @@
       gap: 8px;
       align-items: center;
       position: relative;
-      margin-top: 4px;
+      margin-top: 0; /* Remove a margem desnecessária forçando o scroll */
       border: 0;
       box-shadow: none;
     }
@@ -753,13 +782,12 @@
     .autocomplete-item:last-child { border-bottom: none; }
     .autocomplete-item:hover, .autocomplete-item.active { background: #eaf3f1; }
 
-    /* Gap Reduced Space adjustments */
     .notice-slot {
       min-height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 4px 0 8px;
+      margin: 2px 0 6px; /* Ajuste crítico: garante a aproximação */
     }
 
     .notice-slot:empty::before {
@@ -1572,17 +1600,19 @@
         font-size: 10px;
       }
     }
-
+  
     .game-flip-wrap {
       perspective: 1400px;
       width: 100%;
+      position: relative;
+      margin-bottom: 8px;
     }
 
     .game-flip-inner {
       position: relative;
       width: 100%;
       transform-style: preserve-3d;
-      transition: transform .6s cubic-bezier(.2,.8,.2,1);
+      transition: transform .6s cubic-bezier(.2,.8,.2,1), min-height .25s ease;
     }
 
     .game-flip-wrap.show-summary .game-flip-inner {
@@ -1595,11 +1625,17 @@
       -webkit-backface-visibility: hidden;
     }
 
+    .game-face-front {
+      position: relative;
+    }
+
     .game-face-back {
       position: absolute;
       inset: 0;
       transform: rotateY(180deg);
-      padding-bottom: 6px;
+      padding-bottom: 0;
+      display: flex;
+      flex-direction: column;
     }
 
     .resolved-row {
@@ -1608,6 +1644,7 @@
       gap: 10px;
       align-items: stretch;
       margin-top: 8px;
+      justify-content: center;
     }
 
     .resolved-answer {
@@ -1632,6 +1669,18 @@
     .resolved-answer-text {
       min-width: 0;
       flex: 1 1 auto;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      text-align: left !important;
+      min-height: 100%;
+      font-style: italic !important;
+      width: 100%;
+      font-size: 20px;
+      line-height: 1.18;
+      font-weight: 800;
+      color: var(--accent);
+      font-family: 'Fraunces', serif;
     }
 
     .summary-inline-btn {
@@ -1641,6 +1690,9 @@
       flex: 0 0 auto;
       font-size: 14px;
       font-weight: 800;
+      width: auto;
+      height: 42px;
+      border-radius: 11px;
     }
 
     .resolved-share-btn {
@@ -1684,85 +1736,23 @@
       font-weight: 800;
     }
 
-    @media (max-width: 640px) {
-      .summary-title {
-        font-size: 26px;
-      }
-
-      .resolved-answer {
-        align-items: flex-start;
-      }
-    }
-
-  
-    .resolved-answer {
-      align-items: center;
-    }
-
-    .resolved-answer-text {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      min-height: 100%;
-    }
-
-    @media (max-width: 640px) {
-      .resolved-answer {
-        grid-template-columns: 1fr auto;
-      }
-
-      .resolved-answer-text {
-        justify-content: center;
-        text-align: center;
-      }
-    }
-
-  
-    .resolved-answer {
-      align-items: center !important;
-      justify-content: space-between !important;
-    }
-
-    .resolved-answer-text {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: flex-start !important;
-      text-align: left !important;
-      min-height: 100%;
-      flex: 1 1 auto;
-      font-style: italic !important;
-    }
-
-    @media (max-width: 640px) {
-      .resolved-answer-text {
-        justify-content: flex-start !important;
-        text-align: left !important;
-      }
-    }
-
-    .notice.compact-status {
-      margin: 10px auto 12px;
-      padding: 9px 16px;
-      border-radius: 999px;
-      width: fit-content;
-      max-width: min(100%, 360px);
-      font-size: 14px;
-      line-height: 1.2;
-      box-shadow: 0 8px 18px rgba(38, 72, 71, 0.10);
-    }
-
-    .notice.success.compact-status {
-      background: #bbf0cd;
-      border-color: #37b673;
-      color: #176542;
-      box-shadow: 0 10px 22px rgba(55, 182, 115, 0.18);
-    }
-
-    .resolved-row {
+    .summary-meta-hidden {
       display: none;
-      margin-top: 8px;
+    }
+
+    #returnFromSummary {
+      display: none;
+    }
+
+    .app.summary-open #summaryBtn {
+      display: none;
+    }
+
+    .app.summary-open #returnFromSummary {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
+      gap: 10px;
     }
 
     .result-card {
@@ -1803,19 +1793,6 @@
       color: #6a817d;
     }
 
-    .resolved-answer-text {
-      display: block !important;
-      width: 100%;
-      font-size: 20px;
-      line-height: 1.18;
-      font-weight: 800;
-      color: var(--accent);
-      font-style: normal !important;
-      text-align: center !important;
-      justify-content: center !important;
-      font-family: 'Fraunces', serif;
-    }
-
     .result-card-actions {
       display: flex;
       gap: 9px;
@@ -1836,6 +1813,9 @@
         0 0 0 1px rgba(61,114,111,0.18),
         0 10px 24px rgba(38,72,71,0.14);
       animation: shareBorderGlow 2.8s ease-in-out infinite;
+      width: auto;
+      height: 42px;
+      border-radius: 11px;
     }
 
     .result-share-btn::before {
@@ -1859,39 +1839,6 @@
     }
 
     .result-archive-btn {
-      width: auto;
-      height: 42px;
-      border-radius: 11px;
-    }
-
-    .guess-list {
-      width: min(100%, 560px);
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    @keyframes shareBorderGlow {
-      0%, 100% {
-        box-shadow:
-          0 0 0 1px rgba(61,114,111,0.16),
-          0 10px 24px rgba(38,72,71,0.12),
-          0 0 0 0 rgba(104,186,176,0.00);
-      }
-      50% {
-        box-shadow:
-          0 0 0 1px rgba(104,186,176,0.42),
-          0 10px 24px rgba(38,72,71,0.16),
-          0 0 12px 1px rgba(104,186,176,0.18);
-      }
-    }
-
-    @keyframes shareSheen {
-      0% { transform: translateX(-140%); }
-      100% { transform: translateX(140%); }
-    }
-
-    .summary-inline-btn,
-    .result-share-btn {
       width: auto;
       height: 42px;
       border-radius: 11px;
@@ -1925,101 +1872,34 @@
       transform: rotate(180deg);
     }
 
-    .guess-list {
-      margin-top: 10px;
-      overflow: hidden;
-      transition: max-height .24s ease, opacity .2s ease, margin-top .24s ease;
-      max-height: 560px;
-      opacity: 1;
-    }
-
-    .guess-list.collapsed {
-      max-height: 0;
-      opacity: 0;
-      margin-top: 0;
-      border-width: 0 !important;
-    }
-
     @media (max-width: 640px) {
+      .summary-title {
+        font-size: 26px;
+      }
+      .resolved-answer {
+        grid-template-columns: 1fr auto;
+      }
+      .resolved-answer-text {
+        justify-content: flex-start !important;
+        text-align: left !important;
+        font-size: 19px;
+      }
       .result-card {
         width: min(100%, 540px);
         padding: 14px;
         gap: 12px;
       }
-
-      .resolved-answer-text {
-        font-size: 19px;
-      }
-
       .result-card-actions {
         display: grid;
         grid-template-columns: 1fr;
       }
-
       .result-card-actions .btn {
         width: 100%;
         font-size: 13px;
       }
-
       .guess-list {
         width: min(100%, 540px);
       }
-    }
-
-    .game-flip-wrap {
-      perspective: 1400px;
-      width: 100%;
-      position: relative;
-      margin-bottom: 8px;
-    }
-
-    .game-flip-inner {
-      position: relative;
-      width: 100%;
-      transform-style: preserve-3d;
-      transition: transform .6s cubic-bezier(.2,.8,.2,1), min-height .25s ease;
-    }
-
-    .game-flip-wrap.show-summary .game-flip-inner {
-      transform: rotateY(180deg);
-    }
-
-    .game-face {
-      width: 100%;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-    }
-
-    .game-face-front {
-      position: relative;
-    }
-
-    .game-face-back {
-      position: absolute;
-      inset: 0;
-      transform: rotateY(180deg);
-      padding-bottom: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .summary-meta-hidden {
-      display: none;
-    }
-
-    #returnFromSummary {
-      display: none;
-    }
-
-    .app.summary-open #summaryBtn {
-      display: none;
-    }
-
-    .app.summary-open #returnFromSummary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
     }
 
     .theme-toggle {
@@ -2284,6 +2164,7 @@
     }
 
     html.dark-theme .case-card,
+    html.dark-theme .hint,
     html.dark-theme .guess-item,
     html.dark-theme .archive-card,
     html.dark-theme .summary-card,
@@ -2492,7 +2373,7 @@
               <div class="game-face game-face-front" id="gameFlipFront">
                 <div class="question-title">Qual é o diagnóstico?</div>
                 <div class="case-card skeleton-block" id="caseStem">
-                  <div class="hint-number-side">1</div>
+                  <div class="hint-number-side">dica 1</div>
                   <span class="hint-text" id="caseStemText">
                     <div style="width:100%; display:grid; gap:10px;">
                       <div class="skeleton-line"></div>
@@ -3442,13 +3323,18 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
 
     function updateGameFlipHeight() {
       if (!els.gameFlipWrap || !els.gameFlipInner || !els.gameFlipFront || !els.gameFlipBack) return;
-      const frontHeight = els.gameFlipFront.scrollHeight || 0;
-      const backHeight = els.gameFlipBack.scrollHeight || 0;
       const isSummaryOpen = els.gameFlipWrap.classList.contains('show-summary');
-      const targetHeight = isSummaryOpen ? backHeight : frontHeight;
-      if (targetHeight > 0) {
-        els.gameFlipWrap.style.minHeight = `${targetHeight}px`;
-        els.gameFlipInner.style.minHeight = `${targetHeight}px`;
+      
+      // Ajuste Crítico: Apenas prende a altura mínima se estiver na tela traseira (resumo).
+      // Na tela da frente, o height flui naturalmente, impedindo que o scrollHeight
+      // force o espaço vazio residual embaixo.
+      if (isSummaryOpen) {
+        const backHeight = els.gameFlipBack.scrollHeight || 0;
+        els.gameFlipWrap.style.minHeight = `${backHeight}px`;
+        els.gameFlipInner.style.minHeight = `${backHeight}px`;
+      } else {
+        els.gameFlipWrap.style.minHeight = '0px';
+        els.gameFlipInner.style.minHeight = '0px';
       }
     }
 
@@ -3524,10 +3410,11 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
         : `${titlePrefix} • ${activeQuiz.dateLabel}`;
       renderArchiveNavigation();
 
+      // Ajuste para exibir a numeração "dica 1" na caixa inicial (caso clínico)
       els.caseStem.classList.remove('skeleton-block');
       let stemTextEl = els.caseStem.querySelector('.hint-text');
       if (!stemTextEl) {
-          els.caseStem.innerHTML = `<div class="hint-number-side">1</div><span class="hint-text"></span>`;
+          els.caseStem.innerHTML = `<div class="hint-number-side">dica 1</div><span class="hint-text"></span>`;
           stemTextEl = els.caseStem.querySelector('.hint-text');
       }
       stemTextEl.textContent = activeQuiz.stem;
@@ -3558,7 +3445,7 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
         const text = h.text || '';
         return `<div class="hint ${hiddenClass} ${revealClass} ${finalRevealClass}" data-hint-index="${i}">
           <div class="hint-number-center">${num}</div>
-          <div class="hint-number-side">${num}</div>
+          <div class="hint-number-side">dica ${num}</div>
           <span class="hint-text">${text}</span>
         </div>`;
       }).join('');
@@ -4122,7 +4009,7 @@ ${blocks.join(' ')}
       const hiddenHints = Array.from(els.hintsContainer.querySelectorAll('.hint.final-reveal'));
       if (!hiddenHints.length) return;
 
-      const staggerMs = 250;
+      const staggerMs = 160;
 
       hiddenHints.forEach((hint, offset) => {
         const hintIndex = Number(hint.dataset.hintIndex);
