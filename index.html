@@ -246,10 +246,6 @@
       box-shadow: 0 12px 28px rgba(0,0,0,0.14);
     }
 
-    html.dark-theme .input-row {
-      background: rgba(14, 23, 26, 0.95); /* Cor de fundo do body no dark mode */
-    }
-
     /* ---- ESTRUTURA DOS BALÕES (HINTS) ---- */
     .hints {
       display: flex;
@@ -688,20 +684,12 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
       align-items: center;
+      position: relative;
       margin-top: 0;
       border: 0;
       box-shadow: none;
-      
-      /* --- NOVAS PROPRIEDADES PARA FIXAR A BARRA --- */
-      position: sticky;
-      top: 56px; /* Gruda exatamente abaixo da sua .topbar (que tem 56px de altura) */
-      z-index: 14; /* Fica acima da lista de palpites, mas abaixo da .topbar (z-index 15) */
-      padding: 12px 0; /* Dá um respiro visual quando fixada */
-      background: rgba(242, 247, 246, 0.95); /* Mesma cor base do seu --bg, mas levemente transparente */
-      backdrop-filter: blur(8px); /* Efeito de vidro opaco */
-      -webkit-backdrop-filter: blur(8px);
     }
-    
+
     input[type="text"],
     input[type="search"] {
       width: 100%;
