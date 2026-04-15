@@ -379,19 +379,16 @@
       display: flex;
     }
 
-    .hint.revealed,
-    .hint.final-reveal {
+    .hint.revealed {
       animation: hintExpandFlip 1.1s cubic-bezier(.2,.8,.2,1) forwards;
     }
 
-    .hint.revealed .hint-number-center,
-    .hint.final-reveal .hint-number-center {
+    .hint.revealed .hint-number-center {
       display: flex;
       animation: fadeOutCenter 1.1s forwards;
     }
 
-    .hint.revealed .hint-number-side,
-    .hint.final-reveal .hint-number-side {
+    .hint.revealed .hint-number-side {
       display: flex;
       animation: showAfterFlip 1.1s forwards;
     }
@@ -399,8 +396,7 @@
     /* A SOLUÇÃO DEFINITIVA PARA O BUG DE PULO DE ALTURA 
        Mantemos max-height 0 enquanto a largura está encolhida 
        e expandimos apenas quando o transform for flipar */
-    .hint.revealed .hint-text,
-    .hint.final-reveal .hint-text {
+    .hint.revealed .hint-text {
       display: block;
       animation: textFlowWait 1.1s cubic-bezier(.2,.8,.2,1) forwards;
     }
