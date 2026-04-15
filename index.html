@@ -977,7 +977,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: var(--muted);
+      color: var(--accent);
       background: transparent;
       border: none;
       cursor: pointer;
@@ -993,7 +993,12 @@
     .bottom-nav .nav-item:active {
       transform: scale(0.94);
     }
-        
+    
+    .bottom-nav .nav-item:hover,
+    .bottom-nav .nav-item.active {
+      color: var(--accent);
+    }
+    
     .bottom-nav .nav-icon {
       font-size: 20px;
       line-height: 1;
@@ -2449,19 +2454,19 @@
     <nav class="bottom-nav" id="bottomNav">
       <button class="nav-item active" data-nav="game">
         <span class="nav-icon">📋</span>
-        <span>Dia</span>
+        <span>Diário</span>
       </button>
       <button class="nav-item" data-nav="archives">
         <span class="nav-icon">🗂️</span>
-        <span>Arquivos</span>
+        <span>Anteriores</span>
       </button>
       <button class="nav-item" data-nav="stats">
         <span class="nav-icon">📊</span>
-        <span>Stats</span>
+        <span>Estatísticas</span>
       </button>
       <button class="nav-item" data-nav="about">
         <span class="nav-icon">ℹ️</span>
-        <span>Info</span>
+        <span>Sobre</span>
       </button>
     </nav>
 
@@ -3285,10 +3290,7 @@ let DISEASES = normalizeDiseasesList(FALLBACK_DISEASES);
 
     function setScreen(name) {
       Object.entries(screens).forEach(([key, el]) => el.classList.toggle('active', key === name));
-      document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === name));
-      const brandWrap = document.getElementById('brandTitleWrap');
-      els.brandTitle.textContent = name === 'archives' ? 'termo arquivos' : 'termo';
-      brandWrap.classList.toggle('archive-mode', name === 'archives');
+      document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === name));      
       if (name === 'stats') renderStats();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
