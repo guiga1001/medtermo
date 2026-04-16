@@ -679,15 +679,25 @@
       pointer-events: none;
     }
 
+    /* ---- ALTERAÇÕES PARA INPUT ROW STICKY ---- */
     .input-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
       align-items: center;
-      position: relative;
+      position: sticky;
+      bottom: 76px; /* Mantém acima da bottom nav (64px) + margem */
+      z-index: 45;
       margin-top: 0;
+      padding: 12px;
+      margin-left: -12px;
+      margin-right: -12px;
+      border-radius: 16px;
+      background: rgba(242, 247, 246, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border: 0;
-      box-shadow: none;
+      box-shadow: 0 -4px 14px rgba(38, 72, 71, 0.05);
     }
 
     input[type="text"],
@@ -744,15 +754,17 @@
     .btn.blue:hover { background: var(--accent-dark); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+    /* ---- ALTERAÇÕES PARA AUTOCOMPLETE ABRIR PARA CIMA ---- */
     .autocomplete {
       position: absolute;
       left: 0;
       right: 0;
-      top: calc(100% + 6px);
+      bottom: calc(100% + 8px); /* Abre acima do input */
+      top: auto; 
       background: #fbfcfc;
       border: 1px solid #bfd2ce;
       border-radius: 10px;
-      box-shadow: 0 10px 20px rgba(38, 72, 71, 0.12);
+      box-shadow: 0 -10px 20px rgba(38, 72, 71, 0.12); /* Sombra invertida para cima */
       max-height: 220px;
       overflow-y: auto;
       z-index: 10;
@@ -1477,8 +1489,8 @@
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .question-title { font-size: 22px; }
       .screen-title { font-size: 22px; }
-      .input-row { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-      .autocomplete { right: 0; top: calc(100% + 6px); }
+      /* Ajuste no autocomplete para versão menor acompanhando a nova lógica bottom */
+      .autocomplete { right: 0; bottom: calc(100% + 8px); top: auto; }
       .archive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .panel { padding: 16px 16px 20px; }
       .archive-jump-nav {
@@ -2128,13 +2140,25 @@
     html.dark-theme .share-preview,
     html.dark-theme .modal-share-preview,
     html.dark-theme .guess-list.has-items,
-    html.dark-theme .autocomplete,
     html.dark-theme input[type="text"],
     html.dark-theme .notice.compact-status {
       background: #152226;
       border-color: #2a3c40;
       color: #e5f0ee;
       box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+    }
+
+    /* Nova estilização do autocomplete dark - combinando background com box-shadow invertida */
+    html.dark-theme .autocomplete {
+      background: #152226;
+      border-color: #2a3c40;
+      color: #e5f0ee;
+      box-shadow: 0 -12px 28px rgba(0,0,0,0.14);
+    }
+    
+    html.dark-theme .input-row {
+      background: rgba(14, 23, 26, 0.95);
+      box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.25);
     }
 
     html.dark-theme .archive-card.played-won {
