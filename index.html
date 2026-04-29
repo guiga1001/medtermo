@@ -3320,10 +3320,13 @@
       border-radius: 22px;
       box-shadow: 0 26px 60px rgba(38, 72, 71, 0.18);
       border: 1px solid var(--hint-border);
-      padding: 26px 20px;
+      padding: 46px 20px 26px;
       animation: modalPop .28s cubic-bezier(.2,.8,.2,1);
       color: var(--text);
     }
+    
+    .tut-brand-med { color: #79a5a0; font-family: var(--font-modern-display); font-weight: 800; letter-spacing: -0.035em; }
+    .tut-brand-termo { color: var(--header); font-family: var(--font-modern-display); font-weight: 800; letter-spacing: -0.035em; }
 
     .tutorial-title {
       font-size: 24px;
@@ -3386,6 +3389,14 @@
     
     html.dark-theme .tutorial-subtitle {
       color: #9fb3b0;
+    }
+    html.dark-theme .input-row::before {
+      background: linear-gradient(to top, rgba(14, 23, 26, 0.96), rgba(14, 23, 26, 0));
+    }
+    
+    /* Adicione também para a logo do tutorial ficar branca no dark mode */
+    html.dark-theme .tut-brand-termo {
+      color: #eaf3f1; 
     }
     
 </style>
@@ -3602,28 +3613,37 @@
 <div class="modal-backdrop" id="tutorialModalBackdrop">
     <div class="tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
       <button class="result-modal-x" id="closeTutorialBtn" aria-label="Fechar tutorial">×</button>
-      <h3 class="tutorial-title" id="tutorialTitle">Bem-vindo ao medtermo! 🩺</h3>
-      <p class="tutorial-subtitle">Teste seu raciocínio clínico e revise diagnósticos de forma rápida.</p>
+      
+     <h3 class="tutorial-title" id="tutorialTitle">
+        Bem-vindo ao <span class="tut-brand-med">med</span><span class="tut-brand-termo">termo</span>
+      </h3>
+      <p class="tutorial-subtitle">Descubra o diagnóstico do caso do dia em até 6 tentativas!</p>
       
       <div class="tutorial-steps">
         <div class="tutorial-step">
-          <span class="tutorial-icon">📖</span>
-          <span><strong>Leia o caso clínico:</strong> Comece analisando a apresentação inicial do paciente.</span>
+          <span class="tutorial-icon">⌨️</span>
+          <span>Escreva sua hipótese no campo de digitação ou deixe vazio para pular a tentativa.</span>
         </div>
         <div class="tutorial-step">
           <span class="tutorial-icon">💡</span>
-          <span><strong>Dicas progressivas:</strong> A cada palpite errado (ou ao pular), uma nova dica é revelada. Você tem 6 tentativas!</span>
+          <span>A cada tentativa uma nova dica é liberada.</span>
         </div>
         <div class="tutorial-step">
           <span class="tutorial-icon">🧠</span>
-          <span><strong>Aprenda:</strong> Ao final do jogo, confira a explicação completa do caso para fixar o aprendizado.</span>
+          <span>Use seu raciocínio para acertar o caso com o menor número de dicas.</span>
         </div>
         <div class="tutorial-step">
           <span class="tutorial-icon">🏆</span>
-          <span><strong>Desafie amigos:</strong> Compartilhe seu resultado diário e veja quem acerta com menos dicas.</span>
+          <span>Compartilhe com seus amigos e veja quem fez melhor!</span>
+        </div>
+        <div class="tutorial-step">
+          <span class="tutorial-icon">📚</span>
+          <span>Depois de acertar, veja um resumo do diagnóstico do dia e a explicação do raciocínio clínico por trás do caso!</span>
         </div>
       </div>
-      
+
+    </div>
+  </div>
     </div>
   </div>
   
@@ -4607,6 +4627,8 @@ ${blocks.join(' ')}
     }
 
     function submitGuess() {
+      localStorage.setItem('medtermo-tutorial-seen', 'true');
+      
       const progress = loadProgress(activeDateKey);
       if (progress.status !== 'playing') return;
 
@@ -4658,6 +4680,8 @@ ${blocks.join(' ')}
     }
 
     function skipHint() {
+      localStorage.setItem('medtermo-tutorial-seen', 'true');
+      
       const progress = loadProgress(activeDateKey);
       if (progress.status !== 'playing') return;
       progress.guesses.push({ text: '(pulou)', type: 'skip' });
@@ -5422,11 +5446,10 @@ ${blocks.join(' ')}
     }
 
 function checkAndShowTutorial() {
-      // Pega o número de vezes que já foi visto (se não existir, começa com 0)
-      let viewCount = Number(localStorage.getItem('medtermo-tutorial-count') || 0);
+      const tutorialSeen = localStorage.getItem('medtermo-tutorial-seen');
       
-      // Se viu menos de 3 vezes, mostra o tutorial
-      if (viewCount < 3) {
+      // Se a pessoa nunca chutou, mostra o tutorial
+      if (!tutorialSeen) {
         setTimeout(() => {
           if (els.tutorialModalBackdrop) {
             els.tutorialModalBackdrop.classList.add('show');
@@ -5436,19 +5459,14 @@ function checkAndShowTutorial() {
     }
 
     function closeTutorial() {
-      // Esconde o pop-up
       if (els.tutorialModalBackdrop) {
         els.tutorialModalBackdrop.classList.remove('show');
       }
-      
-      // Conta +1 e salva no navegador
-      let viewCount = Number(localStorage.getItem('medtermo-tutorial-count') || 0);
-      localStorage.setItem('medtermo-tutorial-count', String(viewCount + 1));
+      // Note que não salvamos mais nada na memória ao fechar!
     }
 
-    // Escuta o clique no nosso novo botão X
     els.closeTutorialBtn?.addEventListener('click', closeTutorial);
-    
+
     async function bootstrap() {
       relockGuessInput();
       updateThemeToggleUi();
