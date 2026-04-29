@@ -3313,6 +3313,8 @@
     }
 
     .tutorial-modal {
+      position: relative;
+      z-index: 2;
       width: min(90%, 420px);
       background: var(--card);
       border-radius: 22px;
@@ -3599,6 +3601,7 @@
   
 <div class="modal-backdrop" id="tutorialModalBackdrop">
     <div class="tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+      <button class="result-modal-x" id="closeTutorialBtn" aria-label="Fechar tutorial">×</button>
       <h3 class="tutorial-title" id="tutorialTitle">Bem-vindo ao medtermo! 🩺</h3>
       <p class="tutorial-subtitle">Teste seu raciocínio clínico e revise diagnósticos de forma rápida.</p>
       
@@ -3620,8 +3623,7 @@
           <span><strong>Desafie amigos:</strong> Compartilhe seu resultado diário e veja quem acerta com menos dicas.</span>
         </div>
       </div>
-
-      <button class="btn primary tutorial-btn" id="startPlayingBtn">Jogar agora</button>
+      
     </div>
   </div>
   
@@ -3654,7 +3656,7 @@ let DISEASES = [];
 
     const els = {
       tutorialModalBackdrop: document.getElementById('tutorialModalBackdrop'),
-      startPlayingBtn: document.getElementById('startPlayingBtn'),
+      closeTutorialBtn: document.getElementById('closeTutorialBtn'),
       brandTitle: document.getElementById('brandTitle'),
       themeToggle: document.getElementById('themeToggle'),
       aboutResetBtn: document.getElementById('aboutResetBtn'),
@@ -5419,27 +5421,33 @@ ${blocks.join(' ')}
       });
     }
 
-    function checkAndShowTutorial() {
-      const stats = loadStats();
-      const tutorialSeen = localStorage.getItem('medtermo-tutorial-seen');
+function checkAndShowTutorial() {
+      // Pega o número de vezes que já foi visto (se não existir, começa com 0)
+      let viewCount = Number(localStorage.getItem('medtermo-tutorial-count') || 0);
       
-      // Só mostra se for o primeiro jogo (0 partidas jogadas) E se a flag ainda não existir
-      if (stats.gamesPlayed === 0 && !tutorialSeen) {
-        if (els.tutorialModalBackdrop) {
-          els.tutorialModalBackdrop.classList.add('show');
-        }
+      // Se viu menos de 3 vezes, mostra o tutorial
+      if (viewCount < 3) {
+        setTimeout(() => {
+          if (els.tutorialModalBackdrop) {
+            els.tutorialModalBackdrop.classList.add('show');
+          }
+        }, 150);
       }
     }
 
     function closeTutorial() {
+      // Esconde o pop-up
       if (els.tutorialModalBackdrop) {
         els.tutorialModalBackdrop.classList.remove('show');
       }
-      localStorage.setItem('medtermo-tutorial-seen', 'true');
+      
+      // Conta +1 e salva no navegador
+      let viewCount = Number(localStorage.getItem('medtermo-tutorial-count') || 0);
+      localStorage.setItem('medtermo-tutorial-count', String(viewCount + 1));
     }
 
-    // Fechar o modal ao clicar no botão
-    els.startPlayingBtn?.addEventListener('click', closeTutorial);
+    // Escuta o clique no nosso novo botão X
+    els.closeTutorialBtn?.addEventListener('click', closeTutorial);
     
     async function bootstrap() {
       relockGuessInput();
