@@ -1657,7 +1657,7 @@
 
     .result-modal-head {
       position: relative;
-      padding: 18px 54px 12px 18px;
+      padding: 18px 64px 12px 18px;
       background: linear-gradient(135deg, #f2f7f6, #eaf3f1);
       border-bottom: 1px solid #d4e1df;
       text-align: center;
@@ -1723,6 +1723,12 @@
       font-weight: 800;
       letter-spacing: 0.02em;
       white-space: nowrap;
+      color: #e74c3c; /* Adicionado vermelho para o timer */
+    }
+
+    .highlight-diagnosis {
+      color: #e74c3c; /* Vermelho escuro para destacar o diagnóstico final */
+      font-weight: 900;
     }
 
     .result-modal-body {
@@ -1749,142 +1755,32 @@
     }
 
     .modal-share-btn {
-      background: linear-gradient(135deg, #6eccc4, #4b8b87);
+      background: #1da1f2; /* Azul claro do novo botão */
       color: #fbfcfc;
-      border: 1px solid #4e8f8b;
+      border: 1px solid #1a90d9;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      box-shadow: 0 14px 28px rgba(38, 72, 71, 0.18), 0 0 0 1px rgba(255,255,255,0.18) inset;
+      box-shadow: 0 14px 28px rgba(29, 161, 242, 0.18), 0 0 0 1px rgba(255,255,255,0.18) inset;
       animation: modalSharePulse 2.4s ease-in-out infinite;
     }
 
     .modal-share-btn:hover {
-      background: linear-gradient(135deg, #93d0c8, #4d8f89);
-      border-color: #6daea7;
-      box-shadow: 0 16px 32px rgba(38, 72, 71, 0.24), 0 0 0 1px rgba(255,255,255,0.18) inset;
+      background: #40aef5;
+      border-color: #1a90d9;
+      box-shadow: 0 16px 32px rgba(29, 161, 242, 0.24), 0 0 0 1px rgba(255,255,255,0.18) inset;
     }
 
     @keyframes modalSharePulse {
       0%, 100% {
         transform: translateY(0);
-        box-shadow: 0 14px 28px rgba(38, 72, 71, 0.18), 0 0 0 1px rgba(255,255,255,0.18) inset;
+        box-shadow: 0 14px 28px rgba(29, 161, 242, 0.18), 0 0 0 1px rgba(255,255,255,0.18) inset;
       }
       50% {
         transform: translateY(-1px);
-        box-shadow: 0 18px 34px rgba(38, 72, 71, 0.24), 0 0 0 1px rgba(255,255,255,0.20) inset;
+        box-shadow: 0 18px 34px rgba(29, 161, 242, 0.24), 0 0 0 1px rgba(255,255,255,0.20) inset;
       }
-    }
-
-    .result-modal-close {
-      background: #e7efed;
-      color: #436460;
-    }
-
-    @keyframes modalFade {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes modalPop {
-      from { opacity: 0; transform: translateY(14px) scale(.97); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .archive-jump-nav {
-      display: none;
-      grid-template-columns: 40px minmax(0, 1fr) 40px;
-      align-items: center;
-      gap: 10px;
-      margin: 4px auto 16px;
-      width: 100%;
-      max-width: 560px;
-    }
-
-    .archive-jump-spacer {
-      min-height: 1px;
-    }
-
-    .archive-jump-center {
-      min-width: 0;
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 0 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .archive-jump-center.is-link {
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .archive-jump-center.is-link:hover {
-      opacity: 0.86;
-    }
-
-    .archive-jump-btn {
-      width: 40px;
-      height: 40px;
-      border: 1px solid #bfd2ce;
-      border-radius: 12px;
-      background: #fbfcfc;
-      color: var(--accent);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      cursor: pointer;
-      box-shadow: 0 6px 16px rgba(38, 72, 71, 0.08);
-      transition: transform .12s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease, opacity .2s ease;
-      font-family: inherit;
-    }
-
-    .archive-jump-btn:hover:not(:disabled) {
-      transform: translateY(-1px);
-      border-color: var(--accent);
-      box-shadow: 0 10px 20px rgba(38, 72, 71, 0.12);
-    }
-
-    .archive-jump-btn:disabled {
-      opacity: 0.4;
-      cursor: default;
-      box-shadow: none;
-    }
-
-    .archive-jump-btn.is-hidden {
-      visibility: hidden;
-      pointer-events: none;
-      opacity: 0;
-    }
-
-    .archive-jump-btn-label {
-      display: none;
-    }
-
-    .archive-jump-icon {
-      display: inline-block;
-      width: 11px;
-      height: 11px;
-      border-top: 2.2px solid currentColor;
-      border-right: 2.2px solid currentColor;
-      flex: 0 0 auto;
-    }
-
-    .archive-jump-btn.prev .archive-jump-icon {
-      transform: rotate(-135deg);
-      margin-left: 3px;
-    }
-
-    .archive-jump-btn.next .archive-jump-icon {
-      transform: rotate(45deg);
-      margin-right: 3px;
     }
 
     @media (max-width: 760px) {
@@ -2021,7 +1917,7 @@
       }
 
       .result-modal-head {
-        padding: 14px 46px 9px 14px;
+        padding: 14px 54px 9px 14px;
       }
 
       .result-modal-x {
@@ -3051,28 +2947,36 @@
       box-shadow: 0 12px 26px rgba(0,0,0,0.18);
     }
 
+ html.dark-theme .modal-countdown {
+      color: #ff6b6b; /* Vermelho adaptado para dark theme */
+    }
+
+    html.dark-theme .highlight-diagnosis {
+      color: #ff6b6b;
+    }
+
     html.dark-theme .modal-share-btn {
-      background: linear-gradient(135deg, #6eccc4, #4e8f8b);
-      border-color: #93d0c8;
+      background: #1da1f2;
+      border-color: #1a90d9;
       color: #fbfcfc;
-      box-shadow: 0 16px 32px rgba(38, 72, 71, 0.18), 0 0 0 1px rgba(255,255,255,0.14) inset;
+      box-shadow: 0 16px 32px rgba(29, 161, 242, 0.18), 0 0 0 1px rgba(255,255,255,0.14) inset;
       animation: modalSharePulseDark 2.4s ease-in-out infinite;
     }
 
     html.dark-theme .modal-share-btn:hover {
-      background: linear-gradient(135deg, #93d0c8, #4d8f89);
-      border-color: #6daea7;
-      box-shadow: 0 18px 36px rgba(38, 72, 71, 0.24), 0 0 0 1px rgba(255,255,255,0.18) inset;
+      background: #40aef5;
+      border-color: #1a90d9;
+      box-shadow: 0 18px 36px rgba(29, 161, 242, 0.24), 0 0 0 1px rgba(255,255,255,0.18) inset;
     }
 
     @keyframes modalSharePulseDark {
       0%, 100% {
         transform: translateY(0);
-        box-shadow: 0 16px 32px rgba(38, 72, 71, 0.18), 0 0 0 1px rgba(255,255,255,0.14) inset;
+        box-shadow: 0 16px 32px rgba(29, 161, 242, 0.18), 0 0 0 1px rgba(255,255,255,0.14) inset;
       }
       50% {
         transform: translateY(-1px);
-        box-shadow: 0 20px 38px rgba(38, 72, 71, 0.24), 0 0 0 1px rgba(255,255,255,0.20) inset;
+        box-shadow: 0 20px 38px rgba(29, 161, 242, 0.24), 0 0 0 1px rgba(255,255,255,0.20) inset;
       }
     }
 
@@ -3517,8 +3421,11 @@
                 <span class="resolved-answer-text" id="resolvedAnswerText"></span>
               </div>
               <div class="result-card-actions">
-                <button class="btn modal-share-btn result-share-btn" id="shareResultBtn">Compartilhar</button>
-                <button class="btn secondary summary-inline-btn" id="summaryBtn">Explicação</button>
+                <button class="btn secondary summary-inline-btn" id="summaryBtn">+ Explicação</button>
+                <button class="btn modal-share-btn result-share-btn" id="shareResultBtn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  Compartilhar
+                </button>
                 <button class="btn secondary summary-inline-btn" id="returnFromSummary">
                   <span class="return-arrow" aria-hidden="true">←</span>
                   <span>Retornar</span>
@@ -3602,9 +3509,11 @@
           <h4>Distribuição de acertos</h4>
           <div id="modalDistribution"></div>
         </div>
-        <div class="result-modal-actions">
-          <button class="btn modal-share-btn" id="modalShareButton"><span>Compartilhar</span></button>
-          <button class="btn secondary result-archive-btn" id="modalExplanationBtn">Explicação</button>
+        <button class="btn secondary result-archive-btn" id="modalExplanationBtn">+ Explicação</button>
+          <button class="btn modal-share-btn" id="modalShareButton">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            <span>Compartilhar</span>
+          </button>
         </div>
       </div>
     </div>
@@ -5154,9 +5063,11 @@ ${blocks.join(' ')}
         els.resultModal.classList.remove('modal-won', 'modal-lost');
         els.resultModal.classList.add(status === 'won' ? 'modal-won' : 'modal-lost');
       }
-      document.getElementById('resultModalTitle').textContent = status === 'won'
-        ? 'Diagnóstico correto'
-        : `Fim de jogo. O diagnóstico era ${diagnosis}`;
+     if (status === 'won') {
+        document.getElementById('resultModalTitle').textContent = 'Diagnóstico correto';
+      } else {
+        document.getElementById('resultModalTitle').innerHTML = `Fim de jogo. O diagnóstico era <span class="highlight-diagnosis">${diagnosis}</span>`;
+      }
       renderResultModalSubtitle();
       clearModalEffects();
       els.resultModalBackdrop.classList.add('show');
